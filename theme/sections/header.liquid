@@ -1,0 +1,27 @@
+<header class="site-header" data-section-id="{{ section.id }}" data-section-type="header">
+  <a class="site-header__brand" href="{{ routes.root_url }}">{{ shop.name }}</a>
+
+  {%- if section.settings.menu != blank %}
+    <nav aria-label="{{ 'general.main_navigation' | t }}">
+      <ul>
+        {%- for link in section.settings.menu.links %}
+          <li><a href="{{ link.url }}"{% if link.current %} aria-current="page"{% endif %}>{{ link.title }}</a></li>
+        {%- endfor %}
+      </ul>
+    </nav>
+  {%- endif %}
+</header>
+
+{% schema %}
+{
+  "name": "Header",
+  "settings": [
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "Menu",
+      "default": "main-menu"
+    }
+  ]
+}
+{% endschema %}

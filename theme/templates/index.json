@@ -1,0 +1,11 @@
+{
+  "sections": {
+    "hero": { "type": "hero", "settings": {} },
+    "story": { "type": "story", "settings": {} },
+    "bean-anatomy": { "type": "bean-anatomy", "settings": {} },
+    "roast-simulator": { "type": "roast-simulator", "settings": {} },
+    "catalog": { "type": "featured-catalog", "settings": {} },
+    "footer-cta": { "type": "footer", "disabled": true, "settings": {} }
+  },
+  "order": ["hero", "story", "bean-anatomy", "roast-simulator", "catalog"]
+}

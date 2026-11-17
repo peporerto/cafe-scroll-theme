@@ -1,0 +1,37 @@
+<!doctype html>
+<html
+  lang="{{ request.locale.iso_code }}"
+  data-motion="{{ settings.motion_level | default: 'full' }}"
+  data-depth="{{ settings.depth_effects | default: 'full' }}"
+>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="canonical" href="{{ canonical_url }}">
+    <title>{{ page_title }}</title>
+    {%- if page_description != blank %}
+      <meta name="description" content="{{ page_description | escape }}">
+    {%- endif %}
+
+    {%- comment -%}LCP hero image priority handled via fetchpriority="high" in sections/hero.liquid{%- endcomment -%}
+
+    {% render 'css-variables' %}
+    {{ 'base.css' | asset_url | stylesheet_tag }}
+
+    {{ content_for_header }}
+  </head>
+
+  <body>
+    <a class="skip-link" href="#main">{{ 'general.skip_to_content' | t }}</a>
+
+    {% section 'header' %}
+
+    <main id="main" tabindex="-1">
+      {{ content_for_layout }}
+    </main>
+
+    {% section 'footer' %}
+
+    <script src="{{ 'main.js' | asset_url }}" type="module" defer></script>
+  </body>
+</html>

@@ -1,0 +1,31 @@
+<footer
+  class="site-footer"
+  data-section-id="{{ section.id }}"
+  data-section-type="footer"
+>
+  <div class="site-footer__brand">{{ shop.name }}</div>
+  <p class="site-footer__copy">&copy; {{ 'now' | date: '%Y' }} {{ shop.name }}</p>
+  {%- if section.settings.menu != blank %}
+    <nav aria-label="{{ 'general.footer_navigation' | t }}">
+      <ul>
+        {%- for link in section.settings.menu.links %}
+          <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+        {%- endfor %}
+      </ul>
+    </nav>
+  {%- endif %}
+</footer>
+
+{% schema %}
+{
+  "name": "Footer",
+  "settings": [
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "Menu",
+      "default": "footer"
+    }
+  ]
+}
+{% endschema %}

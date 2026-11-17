@@ -1,0 +1,50 @@
+<section
+  class="story"
+  id="story-{{ section.id }}"
+  data-section-id="{{ section.id }}"
+  data-section-type="story"
+>
+  <div class="story__container">
+    <div class="story__phrase" aria-label="{{ section.settings.phrase }}">
+      {{ section.settings.phrase }}
+    </div>
+
+    <div class="story__stats">
+      {%- for block in section.blocks -%}
+        <div class="story__stat" {{ block.shopify_attributes }}>
+          <span class="story__stat-number" data-target="{{ block.settings.stat_number }}">{{ block.settings.stat_number }}</span>
+          <span class="story__stat-suffix">{{ block.settings.stat_suffix }}</span>
+          <span class="story__stat-label">{{ block.settings.stat_label }}</span>
+        </div>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Story",
+  "settings": [
+    { "type": "textarea", "id": "phrase", "label": "Phrase", "default": "We source the finest beans from high-altitude farms, roast them within days, and deliver a cup that tells the story of its origin." }
+  ],
+  "blocks": [
+    {
+      "type": "stat",
+      "name": "Stat",
+      "settings": [
+        { "type": "number", "id": "stat_number", "label": "Number", "default": 2400 },
+        { "type": "text", "id": "stat_suffix", "label": "Suffix", "default": "+" },
+        { "type": "text", "id": "stat_label", "label": "Label", "default": "Farms" }
+      ]
+    }
+  ],
+  "presets": [{
+    "name": "Story",
+    "blocks": [
+      { "type": "stat", "settings": { "stat_number": 2400, "stat_suffix": "+", "stat_label": "Farms" }},
+      { "type": "stat", "settings": { "stat_number": 18, "stat_suffix": "", "stat_label": "Countries" }},
+      { "type": "stat", "settings": { "stat_number": 100, "stat_suffix": "%", "stat_label": "Direct trade" }}
+    ]
+  }]
+}
+{% endschema %}

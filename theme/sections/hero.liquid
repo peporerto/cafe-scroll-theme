@@ -1,0 +1,104 @@
+<section
+  class="hero"
+  id="hero-{{ section.id }}"
+  data-section-id="{{ section.id }}"
+  data-section-type="hero"
+  data-focus-x="{{ section.settings.focus_x | default: 62 }}"
+  data-focus-y="{{ section.settings.focus_y | default: 58 }}"
+  data-cutout-exists="{% if section.settings.image_bean_cutout != blank %}true{% else %}false{% endif %}"
+>
+  <div class="hero__pin-wrap">
+    {%- comment -%} Far layer: plantation bag {%- endcomment -%}
+    <div class="hero__layer hero__layer--far">
+      {%- if section.settings.image_far != blank %}
+        {{
+          section.settings.image_far
+          | image_url: width: 2400
+          | image_tag:
+            class: 'hero__img hero__img--far',
+            loading: 'eager',
+            fetchpriority: 'high',
+            widths: '600,900,1200,1800,2400',
+            sizes: '100vw'
+        }}
+      {%- else -%}
+        <div class="hero__img hero__img--far hero__img--placeholder hero__scenery" aria-hidden="true">
+          <div class="hero__sun"></div>
+          <svg class="hero__ridge" data-depth="0.25" viewBox="0 0 1440 600" preserveAspectRatio="none"><path d="M0 330 L120 280 L240 320 L380 240 L520 300 L660 220 L800 290 L940 230 L1080 300 L1220 250 L1340 300 L1440 270 L1440 600 L0 600Z" fill="#2c3a33"/></svg>
+          <svg class="hero__ridge" data-depth="0.5" viewBox="0 0 1440 600" preserveAspectRatio="none"><path d="M0 400 L160 340 L300 390 L460 320 L620 380 L780 330 L940 390 L1100 340 L1260 395 L1440 350 L1440 600 L0 600Z" fill="#1f2a25"/></svg>
+          <svg class="hero__ridge" data-depth="0.85" viewBox="0 0 1440 600" preserveAspectRatio="none"><path d="M0 480 L200 430 L380 470 L560 420 L760 470 L960 425 L1160 475 L1320 440 L1440 470 L1440 600 L0 600Z" fill="#141a17"/></svg>
+          <div class="hero__mist"></div>
+        </div>
+      {%- endif %}
+    </div>
+
+    {%- comment -%} Macro layer: bean close-up, revealed via clip-path {%- endcomment -%}
+    <div class="hero__layer hero__layer--macro">
+      {%- if section.settings.image_macro != blank %}
+        {{
+          section.settings.image_macro
+          | image_url: width: 2400
+          | image_tag:
+            class: 'hero__img hero__img--macro',
+            loading: 'lazy',
+            widths: '600,900,1200,1800,2400',
+            sizes: '100vw'
+        }}
+      {%- else -%}
+        <div class="hero__img hero__img--macro hero__img--placeholder" style="background:radial-gradient(ellipse at 50% 55%, #4a2f1e 0%, #2a1c14 45%, #14110f 100%)"></div>
+      {%- endif %}
+    </div>
+
+    {%- comment -%} Optional bean cutout for 3D trajectory arc {%- endcomment -%}
+    {%- if section.settings.image_bean_cutout != blank %}
+      <div class="hero__cutout" aria-hidden="true">
+        {{
+          section.settings.image_bean_cutout
+          | image_url: width: 800
+          | image_tag:
+            class: 'hero__cutout-img',
+            loading: 'lazy',
+            widths: '400,800',
+            sizes: '40vw'
+        }}
+      </div>
+    {%- endif %}
+
+    {%- comment -%} Text overlay {%- endcomment -%}
+    <div class="hero__content">
+      <h1 class="hero__heading">
+        <span class="hero__heading-line">{{ section.settings.heading_line_1 }}</span>
+        <span class="hero__heading-line hero__heading-line--accent">{{ section.settings.heading_line_2 }}</span>
+      </h1>
+      {%- if section.settings.subtext != blank %}
+        <p class="hero__subtext">{{ section.settings.subtext }}</p>
+      {%- endif %}
+    </div>
+
+    {%- comment -%} Monochrome label revealed at the end of hero {%- endcomment -%}
+    <div class="hero__label" aria-hidden="true">
+      {{ section.settings.hero_label | default: '01 / Terroir & Cultivo' }}
+    </div>
+  </div>
+
+  {%- comment -%} CSS depth vignette {%- endcomment -%}
+  <div class="hero__vignette" aria-hidden="true"></div>
+</section>
+
+{% schema %}
+{
+  "name": "Hero",
+  "settings": [
+    { "type": "text", "id": "heading_line_1", "label": "Heading line 1", "default": "From the mountain" },
+    { "type": "text", "id": "heading_line_2", "label": "Heading line 2", "default": "to your cup" },
+    { "type": "textarea", "id": "subtext", "label": "Subtext", "default": "Single-origin specialty coffee, roasted to order." },
+    { "type": "text", "id": "hero_label", "label": "End label", "default": "01 / Terroir & Cultivo" },
+    { "type": "image_picker", "id": "image_far", "label": "Far image (plantation)" },
+    { "type": "image_picker", "id": "image_macro", "label": "Macro image (beans)" },
+    { "type": "image_picker", "id": "image_bean_cutout", "label": "Bean cutout PNG (optional)" },
+    { "type": "range", "id": "focus_x", "label": "Focus X %", "min": 0, "max": 100, "step": 1, "default": 62 },
+    { "type": "range", "id": "focus_y", "label": "Focus Y %", "min": 0, "max": 100, "step": 1, "default": 58 }
+  ],
+  "presets": [{ "name": "Hero" }]
+}
+{% endschema %}

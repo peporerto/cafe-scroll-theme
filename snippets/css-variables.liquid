@@ -1,0 +1,12 @@
+<style>
+  :root {
+    --color-bg: {{ settings.color_bg | default: '#14110f' }};
+    --color-text: {{ settings.color_text | default: '#f1ece4' }};
+    --color-accent: {{ settings.color_accent | default: '#d9a441' }};
+    --color-muted: {{ settings.color_muted | default: '#b8b0a4' }};
+    --color-espresso: #2a1c14;
+  }
+</style>
+<script>
+  document.documentElement.dataset.depth = {{ settings.depth_effects | default: 'full' | json }};
+</script>

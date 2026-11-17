@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="es" data-motion="full" data-depth="full">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cafe Scroll — Tienda de Café de Especialidad & Grano 3D</title>
+    <style>
+      :root {
+        --color-bg: #14110f;
+        --color-text: #f1ece4;
+        --color-accent: #d9a441;
+        --color-muted: #b8b0a4;
+        --color-espresso: #2a1c14;
+      }
+    </style>
+    <link rel="stylesheet" href="./theme/assets/base.css">
+  </head>
+
+  <body>
+    <a class="skip-link" href="#main">Saltar al contenido</a>
+
+    <header class="site-header" data-section-id="header" data-section-type="header">
+      <a class="site-header__brand" href="/">Cafe Scroll</a>
+      <nav aria-label="Navegación principal">
+        <ul>
+          <li><a href="#hero">Origen</a></li>
+          <li><a href="#bean-anatomy">Anatomía 3D</a></li>
+          <li><a href="#roast-simulator">Tueste</a></li>
+          <li><a href="#catalog">Colección</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <!-- 1. HERO -->
+      <section
+        class="hero"
+        id="hero"
+        data-section-id="hero"
+        data-section-type="hero"
+        data-focus-x="62"
+        data-focus-y="58"
+        data-cutout-exists="true"
+      >
+        <div class="hero__pin-wrap">
+          <div class="hero__layer hero__layer--far">
+            <div class="hero__img hero__img--far hero__img--placeholder" style="background: radial-gradient(circle at 62% 58%, #3d2b1f 0%, #14110f 80%);"></div>
+          </div>
+
+          <div class="hero__layer hero__layer--macro">
+            <div class="hero__img hero__img--macro hero__img--placeholder" style="background: radial-gradient(circle at 50% 50%, #5c3822 0%, #2a1c14 70%);"></div>
+          </div>
+
+          <div class="hero__cutout" aria-hidden="true">
+            <img class="hero__cutout-img" src="./bean-lab/hero3.png" alt="Grano 3D">
+          </div>
+
+          <div class="hero__content">
+            <h1 class="hero__heading">
+              <span class="hero__heading-line">De la montaña</span>
+              <span class="hero__heading-line hero__heading-line--accent">a tu taza</span>
+            </h1>
+            <p class="hero__subtext">Café de especialidad de origen único con grano 3D interactivo procedural, scroll fluido y simulador de tueste en tiempo real.</p>
+          </div>
+
+          <div class="hero__label" aria-hidden="true">
+            01 / Terroir &amp; Cultivo
+          </div>
+        </div>
+
+        <div class="hero__vignette" aria-hidden="true"></div>
+      </section>
+
+      <!-- 2. STORY -->
+      <section
+        class="story"
+        id="story"
+        data-section-id="story"
+        data-section-type="story"
+      >
+        <div class="story__container">
+          <div class="story__phrase" aria-label="Seleccionamos los mejores granos en fincas de alta montaña, los tostamos artesanalmente y creamos una experiencia sensorial única que rinde homenaje a su origen.">
+            Seleccionamos los mejores granos en fincas de alta montaña, los tostamos artesanalmente y creamos una experiencia sensorial única que rinde homenaje a su origen.
+          </div>
+
+          <div class="story__stats">
+            <div class="story__stat">
+              <span class="story__stat-number" data-target="2400">2400</span>
+              <span class="story__stat-suffix">+</span>
+              <span class="story__stat-label">Fincas</span>
+            </div>
+            <div class="story__stat">
+              <span class="story__stat-number" data-target="18">18</span>
+              <span class="story__stat-suffix"></span>
+              <span class="story__stat-label">Países</span>
+            </div>
+            <div class="story__stat">
+              <span class="story__stat-number" data-target="100">100</span>
+              <span class="story__stat-suffix">%</span>
+              <span class="story__stat-label">Comercio Directo</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. BEAN ANATOMY -->
+      <section
+        class="bean-anatomy"
+        id="bean-anatomy"
+        data-section-id="bean-anatomy"
+        data-section-type="bean-anatomy"
+      >
+        <div class="bean-anatomy__pin-wrap">
+          <div class="bean-anatomy__canvas-wrap">
+            <div class="bean-anatomy__fallback bean-anatomy__fallback--placeholder"></div>
+          </div>
+
+          <div class="bean-anatomy__cards">
+            <div class="bean-anatomy__card" data-card-index="0">
+              <div class="bean-anatomy__card-line"></div>
+              <h3 class="bean-anatomy__card-title">Película plateada</h3>
+              <p class="bean-anatomy__card-text">La fina capa de cascarilla que se desprende de forma natural durante la expansión térmica del tueste.</p>
+            </div>
+            <div class="bean-anatomy__card" data-card-index="1">
+              <div class="bean-anatomy__card-line"></div>
+              <h3 class="bean-anatomy__card-title">Surco central</h3>
+              <p class="bean-anatomy__card-text">La costura característica en forma de S que se abre durante el primer crack liberando CO₂ y aromas volátiles.</p>
+            </div>
+            <div class="bean-anatomy__card" data-card-index="2">
+              <div class="bean-anatomy__card-line"></div>
+              <h3 class="bean-anatomy__card-title">Estructura celular</h3>
+              <p class="bean-anatomy__card-text">Millones de microalvéolos que se expanden con el calor atrapando aceites esenciales y compuestos aromáticos.</p>
+            </div>
+            <div class="bean-anatomy__card" data-card-index="3">
+              <div class="bean-anatomy__card-line"></div>
+              <h3 class="bean-anatomy__card-title">Aceites superficiales</h3>
+              <p class="bean-anatomy__card-text">Los lípidos que migran a la superficie en los tuestes más oscuros, aportando cuerpo sedoso y brillo distintivo.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. ROAST SIMULATOR -->
+      <section
+        class="roast-sim"
+        id="roast-simulator"
+        data-section-id="roast-simulator"
+        data-section-type="roast-simulator"
+      >
+        <div class="roast-sim__container">
+          <h2 class="roast-sim__title">El arte del tueste</h2>
+
+          <div class="roast-sim__layout">
+            <div class="roast-sim__canvas-col">
+              <div class="roast-sim__fallback roast-sim__fallback--placeholder"></div>
+
+              <div class="roast-sim__slider-wrap">
+                <label for="roast-range" class="roast-sim__slider-label">
+                  Temperatura: <output class="roast-sim__temp roast-sim__temp-value" id="roast-temp">200°C</output>
+                </label>
+                <input
+                  type="range"
+                  id="roast-range"
+                  class="roast-sim__range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value="0.5"
+                  aria-label="Selector continuo de nivel de tueste"
+                >
+              </div>
+            </div>
+
+            <div class="roast-sim__info-col">
+              <div class="roast-sim__stages" role="group" aria-label="Etapas de tueste">
+                <button class="roast-sim__stage-btn" data-stage-index="0" aria-pressed="false">
+                  <span class="roast-sim__stage-dot" style="background:#6F7A4C"></span>
+                  Secado
+                </button>
+                <button class="roast-sim__stage-btn" data-stage-index="1" aria-pressed="false">
+                  <span class="roast-sim__stage-dot" style="background:#8A6338"></span>
+                  Maillard
+                </button>
+                <button class="roast-sim__stage-btn roast-sim__stage-btn--active" data-stage-index="2" aria-pressed="true">
+                  <span class="roast-sim__stage-dot" style="background:#43271A"></span>
+                  Primer crack
+                </button>
+                <button class="roast-sim__stage-btn" data-stage-index="3" aria-pressed="false">
+                  <span class="roast-sim__stage-dot" style="background:#2A160D"></span>
+                  Segundo crack
+                </button>
+                <button class="roast-sim__stage-btn" data-stage-index="4" aria-pressed="false">
+                  <span class="roast-sim__stage-dot" style="background:#150C08"></span>
+                  Oscuro
+                </button>
+              </div>
+
+              <div class="roast-sim__diagnosis">
+                <div class="roast-sim__notes">
+                  <strong>Notas de cata:</strong>
+                  <span class="roast-sim__notes-text">Caramelo, chocolate, fruta</span>
+                </div>
+                <div class="roast-sim__bars">
+                  <div class="roast-sim__bar-row">
+                    <span class="roast-sim__bar-label">Acidez</span>
+                    <div class="roast-sim__bar"><div class="roast-sim__bar-fill" data-sense="acidity" style="width:65%"></div></div>
+                  </div>
+                  <div class="roast-sim__bar-row">
+                    <span class="roast-sim__bar-label">Cuerpo</span>
+                    <div class="roast-sim__bar"><div class="roast-sim__bar-fill" data-sense="body" style="width:55%"></div></div>
+                  </div>
+                  <div class="roast-sim__bar-row">
+                    <span class="roast-sim__bar-label">Dulzor</span>
+                    <div class="roast-sim__bar"><div class="roast-sim__bar-fill" data-sense="sweetness" style="width:60%"></div></div>
+                  </div>
+                </div>
+              </div>
+
+              <table class="roast-sim__table">
+                <thead>
+                  <tr>
+                    <th>Etapa</th>
+                    <th>Temp °C</th>
+                    <th>Perfil</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr data-stage-row="0">
+                    <td><span class="roast-sim__stage-dot-sm" style="background:#6F7A4C"></span>Secado</td>
+                    <td>165°C</td>
+                    <td>Hierba fresca, paja</td>
+                  </tr>
+                  <tr data-stage-row="1">
+                    <td><span class="roast-sim__stage-dot-sm" style="background:#8A6338"></span>Maillard</td>
+                    <td>180°C</td>
+                    <td>Pan horneado, grano</td>
+                  </tr>
+                  <tr data-stage-row="2" class="is-active">
+                    <td><span class="roast-sim__stage-dot-sm" style="background:#43271A"></span>Primer crack</td>
+                    <td>200°C</td>
+                    <td>Caramelo, fruta, cacao</td>
+                  </tr>
+                  <tr data-stage-row="3">
+                    <td><span class="roast-sim__stage-dot-sm" style="background:#2A160D"></span>Segundo crack</td>
+                    <td>225°C</td>
+                    <td>Chocolate negro, ahumado</td>
+                  </tr>
+                  <tr data-stage-row="4">
+                    <td><span class="roast-sim__stage-dot-sm" style="background:#150C08"></span>Oscuro</td>
+                    <td>240°C</td>
+                    <td>Carbón, tostado intenso</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. FEATURED CATALOG -->
+      <section
+        class="catalog"
+        id="catalog"
+        data-section-id="catalog"
+        data-section-type="featured-catalog"
+      >
+        <div class="catalog__container">
+          <h2 class="catalog__title">Nuestra Colección</h2>
+          <p class="catalog__subtext">Lotes selectos de microlotes tostados bajo pedido con banda cromática de origen.</p>
+
+          <div class="catalog__grid">
+            <article class="catalog__card">
+              <div class="catalog__card-image">
+                <div class="catalog__img-placeholder" style="background:#B22234; height:100%; min-height:220px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700;">Etiopía</div>
+              </div>
+              <div class="catalog__card-info">
+                <span class="catalog__card-origin">Etiopía Yirgacheffe</span>
+                <h3 class="catalog__card-name">Banda Cereza</h3>
+                <p class="catalog__card-notes">Jazmín, flor de azahar y frambuesa madura.</p>
+              </div>
+            </article>
+
+            <article class="catalog__card">
+              <div class="catalog__card-image">
+                <div class="catalog__img-placeholder" style="background:#4A7C59; height:100%; min-height:220px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700;">Colombia</div>
+              </div>
+              <div class="catalog__card-info">
+                <span class="catalog__card-origin">Colombia Huila</span>
+                <h3 class="catalog__card-name">Banda Verde Cobre</h3>
+                <p class="catalog__card-notes">Manzana verde, panela y caramelo crujiente.</p>
+              </div>
+            </article>
+
+            <article class="catalog__card">
+              <div class="catalog__card-image">
+                <div class="catalog__img-placeholder" style="background:#2C3E50; height:100%; min-height:220px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700;">Guatemala</div>
+              </div>
+              <div class="catalog__card-info">
+                <span class="catalog__card-origin">Guatemala Antigua</span>
+                <h3 class="catalog__card-name">Banda Azul Tinta</h3>
+                <p class="catalog__card-notes">Chocolate con leche, nuez y ciruela negra.</p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer" data-section-id="footer" data-section-type="footer">
+      <div class="site-footer__brand">Cafe Scroll</div>
+      <p class="site-footer__copy">&copy; 2026 Cafe Scroll. Todos los derechos reservados.</p>
+    </footer>
+
+    <script src="./theme/assets/main.js" type="module"></script>
+  </body>
+</html>

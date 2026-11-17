@@ -1,0 +1,63 @@
+<section
+  class="bean-anatomy"
+  id="bean-{{ section.id }}"
+  data-section-id="{{ section.id }}"
+  data-section-type="bean-anatomy"
+>
+  <div class="bean-anatomy__pin-wrap">
+    <div class="bean-anatomy__canvas-wrap">
+      <canvas class="bean-anatomy__canvas" aria-hidden="true"></canvas>
+      {%- if section.settings.image_bean_still != blank %}
+        {{
+          section.settings.image_bean_still
+          | image_url: width: 1200
+          | image_tag:
+            class: 'bean-anatomy__fallback',
+            loading: 'lazy',
+            widths: '400,800,1200',
+            sizes: '(min-width:900px) 50vw, 100vw'
+        }}
+      {%- else -%}
+        <div class="bean-anatomy__fallback bean-anatomy__fallback--placeholder"></div>
+      {%- endif %}
+    </div>
+
+    <div class="bean-anatomy__cards">
+      {%- for block in section.blocks %}
+        <div class="bean-anatomy__card" data-card-index="{{ forloop.index0 }}" {{ block.shopify_attributes }}>
+          <div class="bean-anatomy__card-line"></div>
+          <h3 class="bean-anatomy__card-title">{{ block.settings.title }}</h3>
+          <p class="bean-anatomy__card-text">{{ block.settings.text }}</p>
+        </div>
+      {%- endfor %}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Bean Anatomy",
+  "settings": [
+    { "type": "image_picker", "id": "image_bean_still", "label": "Bean fallback image" }
+  ],
+  "blocks": [
+    {
+      "type": "card",
+      "name": "Anatomy card",
+      "settings": [
+        { "type": "text", "id": "title", "label": "Title", "default": "Center crease" },
+        { "type": "textarea", "id": "text", "label": "Description", "default": "The seam that splits during roasting, releasing CO₂ and volatile aromatics." }
+      ]
+    }
+  ],
+  "presets": [{
+    "name": "Bean Anatomy",
+    "blocks": [
+      { "type": "card", "settings": { "title": "Silver skin", "text": "The thin chaff layer that detaches during roasting." }},
+      { "type": "card", "settings": { "title": "Center crease", "text": "The seam that splits during first crack, releasing CO₂ and volatiles." }},
+      { "type": "card", "settings": { "title": "Cell structure", "text": "Thousands of cells expand with heat, trapping oils and flavor compounds." }},
+      { "type": "card", "settings": { "title": "Surface oils", "text": "Lipids migrate outward in dark roasts, creating the characteristic sheen." }}
+    ]
+  }]
+}
+{% endschema %}
