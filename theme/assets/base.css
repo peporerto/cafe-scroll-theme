@@ -445,3 +445,18 @@ html[data-depth="off"] .roast-sim__canvas-col::before { display: none !important
 .roast-sim__canvas-col .stage-canvas { bottom: 6.5rem; height: auto; }
 .roast-sim__slider-wrap { position: relative; z-index: 2; }
 @media (max-width: 768px) { .roast-sim__canvas-col { min-height: 420px; } }
+
+/* Hero text sits opposite the product (bag is left of center in the photo) */
+.hero__content { background: linear-gradient(0deg, rgba(20,17,15,.72) 0%, rgba(20,17,15,0) 55%); }
+.hero__content > * { max-width: 40rem; }
+@media (min-width: 900px) {
+  .hero__content { justify-items: end; text-align: left; background: linear-gradient(270deg, rgba(20,17,15,.78) 0%, rgba(20,17,15,.35) 45%, rgba(20,17,15,0) 70%); }
+  .hero__content > * { width: min(44%, 40rem); }
+  .hero__heading { font-size: clamp(2.5rem, 5.2vw, 5rem); }
+}
+
+/* Keep the product in frame on narrow screens (cover crops the sides) */
+.hero__layer--far .hero__img, .hero__layer--macro .hero__img { object-position: var(--focus-x, 50%) var(--focus-y, 50%); }
+@media (max-width: 899px) {
+  .hero__content { align-content: start; padding-top: 5.5rem; background: linear-gradient(180deg, rgba(20,17,15,.7) 0%, rgba(20,17,15,0) 55%); }
+}

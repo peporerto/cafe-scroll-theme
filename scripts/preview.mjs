@@ -5,6 +5,6 @@ const mime = { '.js':'text/javascript', '.css':'text/css', '.png':'image/png', '
 http.createServer(async (q, r) => {
   const p = q.url.split('?')[0];
   if (p === '/') { try { const h = await render(); r.writeHead(200, {'Content-Type':'text/html; charset=utf-8'}); return r.end(h); } catch (e) { r.writeHead(500); return r.end(String(e)); } }
-  const f = path.join('theme', p.replace(/\.\./g, ''));
+  const clean = p.replace(/\.\./g, ''); const f = clean.startsWith('/preview-images/') ? clean.slice(1) : path.join('theme', clean);
   fs.readFile(f, (e, d) => { if (e) { r.writeHead(404); return r.end('nf'); } r.writeHead(200, {'Content-Type': mime[path.extname(f)] || 'application/octet-stream'}); r.end(d); });
 }).listen(3000, () => console.log('Abre http://localhost:3000  (recarga el navegador tras npm run build)'));

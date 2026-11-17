@@ -5,11 +5,17 @@ const engine = new Liquid({ root:[path.join(T,'snippets')], extname:'.liquid', j
 engine.registerFilter('asset_url', v=>'/assets/'+v);
 engine.registerFilter('stylesheet_tag', u=>`<link rel="stylesheet" href="${u}">`);
 engine.registerFilter('t', k=>k);
-engine.registerFilter('image_url', v=>v); engine.registerFilter('image_tag', v=>v);
+engine.registerFilter('image_url', v=>v);
+engine.registerFilter('image_tag', (url,...args)=>{ const a={}; for(const x of args) if(Array.isArray(x)) a[x[0]]=x[1]; return `<img src="${url}" class="${a.class||''}" loading="${a.loading||'lazy'}" ${a.fetchpriority?`fetchpriority="${a.fetchpriority}"`:''} alt="">`; });
 engine.registerFilter('money', v=>'$'+v);
 const settingsSchema = JSON.parse(fs.readFileSync(path.join(T,'config/settings_schema.json'),'utf8'));
 const gsettings={}; for(const g of settingsSchema) for(const s of g.settings||[]) if(s.id) gsettings[s.id]=s.default;
-const imgs = JSON.parse(process.env.IMGS||'{}');
+const D='preview-images'; const has=f=>fs.existsSync(path.join(D,f)) ? '/'+D+'/'+f : undefined;
+const pick=(o)=>Object.fromEntries(Object.entries(o).filter(([,v])=>v));
+const imgs = {
+  hero: pick({ image_far: has('hero-far.jpg'), image_macro: has('hero-macro.jpg'), image_bean_cutout: has('hero-cutout.png') }),
+  'bean-anatomy': pick({ image_bean_still: has('bean-still.jpg') }),
+};
 function defaults(arr){const o={};for(const s of arr||[]) if(s.id) o[s.id]=s.default; return o;}
 async function renderSection(name,id){
   const raw=fs.readFileSync(path.join(T,'sections',name+'.liquid'),'utf8');

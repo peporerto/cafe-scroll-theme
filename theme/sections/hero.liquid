@@ -3,8 +3,9 @@
   id="hero-{{ section.id }}"
   data-section-id="{{ section.id }}"
   data-section-type="hero"
-  data-focus-x="{{ section.settings.focus_x | default: 62 }}"
+  data-focus-x="{{ section.settings.focus_x | default: 34 }}"
   data-focus-y="{{ section.settings.focus_y | default: 58 }}"
+  style="--focus-x: {{ section.settings.focus_x | default: 34 }}%; --focus-y: {{ section.settings.focus_y | default: 58 }}%;"
   data-cutout-exists="{% if section.settings.image_bean_cutout != blank %}true{% else %}false{% endif %}"
 >
   <div class="hero__pin-wrap">
@@ -96,7 +97,7 @@
     { "type": "image_picker", "id": "image_far", "label": "Far image (plantation)" },
     { "type": "image_picker", "id": "image_macro", "label": "Macro image (beans)" },
     { "type": "image_picker", "id": "image_bean_cutout", "label": "Bean cutout PNG (optional)" },
-    { "type": "range", "id": "focus_x", "label": "Focus X %", "min": 0, "max": 100, "step": 1, "default": 62 },
+    { "type": "range", "id": "focus_x", "label": "Focus X %", "min": 0, "max": 100, "step": 1, "default": 34 },
     { "type": "range", "id": "focus_y", "label": "Focus Y %", "min": 0, "max": 100, "step": 1, "default": 58 }
   ],
   "presets": [{ "name": "Hero" }]

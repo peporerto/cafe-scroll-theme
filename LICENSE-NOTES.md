@@ -55,3 +55,7 @@ Código propio, escrito desde cero. Usa la librería Three.js (MIT). Se integra 
 | `bean-lab/dist/bean-lab.js` | Propietario + Three.js MIT | Bundle compilado; incluye Three.js r160+ |
 | `bean-lab/shoot.cjs` | Propietario (obra propia) | Script de captura con Playwright (dev only) |
 | Three.js (dentro del bundle) | MIT | Copyright 2010-2026 Three.js Authors |
+
+## Imágenes de demostración (preview-images/)
+- Generadas con Google Gemini (imágenes de IA) el 2026-11-16 a partir de los prompts de PROMPTS_imagenes_M2.md. `hero-cutout.png` es un recorte propio de una de ellas.
+- PENDIENTE antes de vender: confirmar por escrito que los términos de Gemini permiten uso comercial y redistribución dentro de una plantilla. Mientras tanto no se incluyen en el ZIP del tema; el comprador sube las suyas.
