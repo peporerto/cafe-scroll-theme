@@ -12,17 +12,22 @@ gsap.registerPlugin(ScrollTrigger);
 export function init(section, state, effective) {
   if (!section) return null;
 
-    const layerFar     = section.querySelector('.hero__layer--far');
+    const zoom         = section.querySelector('.hero__zoom');
+  const layerFar     = section.querySelector('.hero__layer--far');
+  const layerOpen    = section.querySelector('.hero__layer--open');
+  const layerInside  = section.querySelector('.hero__layer--inside');
   const layerMacro   = section.querySelector('.hero__layer--macro');
+  const wash         = section.querySelector('.hero__wash');
   const content      = section.querySelector('.hero__content');
   const headingLines = section.querySelectorAll('.hero__heading-line');
   const subtext      = section.querySelector('.hero__subtext');
-  const label        = section.querySelector('.hero__label');
-  const cutout       = section.querySelector('.hero__cutout img');
+  const cutoutBox    = section.querySelector('.hero__cutout');
+  const cutoutShadow = section.querySelector('.hero__cutout .bean-box__shadow');
+  const hasOpen      = !!layerOpen?.querySelector('img');
+  const hasInside    = !!layerInside?.querySelector('img');
 
-  const focusX = parseFloat(section.dataset.focusX ?? 62);
+  const focusX = parseFloat(section.dataset.focusX ?? 34);
   const focusY = parseFloat(section.dataset.focusY ?? 58);
-  const hasCutout = section.dataset.cutoutExists === 'true';
 
   const destroyers = [];
 
@@ -42,55 +47,78 @@ export function init(section, state, effective) {
     return () => {};
   }
 
-  // ── Scroll timeline: pin the whole hero for 300% of the viewport ──────────
-  const origin = `${focusX}% ${focusY}%`;
+  // ── Where things are in the photos (fractions of the frame) ──────────────
+  // Bag opening in the "open bag" photo and in the "inside the bag" photo.
+  const OPEN_AT   = { x: 0.336, y: 0.39 };
+  const INSIDE_AT = { x: 0.449, y: 0.478 };
+
   const ridges = section.querySelectorAll('.hero__ridge');
   const tl = gsap.timeline({ defaults: { ease: 'power2.inOut' } });
+  const W = () => window.innerWidth;
+  const H = () => window.innerHeight;
 
-  // 0–35%: far layer zooms toward the bag; text leaves
-  if (layerFar) {
-    gsap.set(layerFar, { transformOrigin: origin });
-    if (ridges.length) {
-      // placeholder scenery: each ridge travels at a different speed (parallax depth)
-      ridges.forEach((r) => {
-        const d = parseFloat(r.dataset.depth || '0.5');
-        tl.to(r, { scale: 1 + d * 0.9, yPercent: d * 14, ease: 'power2.inOut', duration: 0.7 }, 0);
-      });
-      tl.to(layerFar.querySelector('.hero__sun'), { scale: 1.6, y: -40, duration: 0.7 }, 0);
-    } else {
-      tl.to(layerFar, { scale: 1.6, duration: 0.7 }, 0);
-    }
+  // 0–16%: text leaves
+  if (content) tl.to(content, { opacity: 0, yPercent: -14, duration: 0.16 }, 0);
+
+  // 4–14%: the bag opens (closed photo cross-fades to the open one)
+  if (hasOpen) tl.fromTo(layerOpen, { opacity: 0 }, { opacity: 1, duration: 0.1, ease: 'power1.inOut' }, 0.04);
+
+  // 10–44%: camera pushes into the opening
+  if (zoom) {
+    gsap.set(zoom, { transformOrigin: `${OPEN_AT.x * 100}% ${OPEN_AT.y * 100}%` });
+    tl.to(zoom, { scale: hasInside ? 2.3 : 1.7, duration: 0.34, ease: 'power2.inOut' }, 0.1);
+    ridges.forEach((r) => {
+      const d = parseFloat(r.dataset.depth || '0.5');
+      tl.to(r, { scale: 1 + d * 0.5, yPercent: d * 10, duration: 0.34 }, 0.1);
+    });
   }
-  if (content) tl.to(content, { opacity: 0, yPercent: -14, duration: 0.3 }, 0);
+  // 32–46%: we are inside the bag
+  if (hasInside) {
+    tl.fromTo(layerInside, { opacity: 0, scale: 1.05 }, { opacity: 1, scale: 1, duration: 0.14, ease: 'power1.inOut' }, 0.32);
+  }
 
-  // 30–70%: iris reveals the macro layer; far layer fades
+  // 42–68%: iris opens from the bag mouth onto the pile of beans
   if (layerMacro) {
+    const ox = (hasInside ? INSIDE_AT.x : OPEN_AT.x) * 100;
+    const oy = (hasInside ? INSIDE_AT.y : OPEN_AT.y) * 100;
     tl.fromTo(layerMacro,
-      { clipPath: `circle(0% at ${focusX}% ${focusY}%)` },
-      { clipPath: `circle(100% at ${focusX}% ${focusY}%)`, duration: 0.4, ease: 'power2.in' }, 0.3);
-    tl.fromTo(layerMacro, { scale: 1.25 }, { scale: 1, duration: 0.7 }, 0.3);
+      { clipPath: `circle(0% at ${ox}% ${oy}%)` },
+      { clipPath: `circle(150% at ${ox}% ${oy}%)`, duration: 0.26, ease: 'power2.in' }, 0.42);
+    tl.fromTo(layerMacro, { scale: 1.25 }, { scale: 1, duration: 0.5 }, 0.42);
+    // the layers above fade once the iris covers them
+    if (zoom)         tl.to(zoom,        { opacity: 0, duration: 0.08 }, 0.56);
+    if (layerInside)  tl.to(layerInside, { opacity: 0, duration: 0.08 }, 0.6);
   }
-  if (layerFar) tl.to(layerFar, { opacity: 0, duration: 0.4 }, 0.35);
 
-  // 55–100%: cutout jumps in an arc toward the camera, bounces once, leaves
-  if (hasCutout && cutout) {
-    tl.fromTo(cutout, { x: () => window.innerWidth * 0.18, y: 80, scale: 0.3, opacity: 0 },
-      { x: 0, scale: 1, opacity: 1, duration: 0.25, ease: 'power3.out' }, 0.55);
-    tl.fromTo(cutout, { y: 80 }, { y: -90, duration: 0.12, ease: 'power2.out' }, 0.55);
-    tl.to(cutout, { y: 0, duration: 0.13, ease: 'bounce.out' }, 0.67);
-    tl.to(cutout, { scale: 0.8, opacity: 0, duration: 0.2, ease: 'power3.in' }, 0.8);
+  // 56–78%: a bean jumps out of the pile, arcs toward the camera and lands in the middle
+  if (cutoutBox) {
+    const startX = () => (INSIDE_AT.x - 0.5) * W();
+    const startY = () => (INSIDE_AT.y - 0.5) * H();
+    gsap.set(cutoutBox, { opacity: 0 });
+    tl.fromTo(cutoutBox, { opacity: 0 }, { opacity: 1, duration: 0.04, ease: 'none' }, 0.56);
+    tl.fromTo(cutoutBox, { x: startX, scale: 0.16, rotation: -50 },
+      { x: 0, scale: 1, rotation: 0, duration: 0.22, ease: 'power2.out' }, 0.56);
+    tl.fromTo(cutoutBox, { y: startY }, { y: () => -0.26 * H(), duration: 0.11, ease: 'power2.out' }, 0.56);
+    tl.to(cutoutBox, { y: 0, duration: 0.11, ease: 'power2.in' }, 0.67);
+    // tiny landing bounce
+    tl.to(cutoutBox, { y: -14, duration: 0.025, ease: 'power1.out' }, 0.78);
+    tl.to(cutoutBox, { y: 0, duration: 0.03, ease: 'power1.in' }, 0.805);
   }
-  if (label) tl.fromTo(label, { opacity: 0 }, { opacity: 1, duration: 0.25 }, 0.75);
+
+  // 78–96%: the world turns to the light studio colour, the bean stays put
+  if (wash) tl.fromTo(wash, { opacity: 0 }, { opacity: 1, duration: 0.18, ease: 'power1.inOut' }, 0.78);
+  if (cutoutShadow) tl.fromTo(cutoutShadow, { opacity: 0 }, { opacity: 1, duration: 0.14 }, 0.82);
   tl.to({}, { duration: 0.001 }, 1); // fixes total duration at 1
 
   const st = ScrollTrigger.create({
     trigger: section,
     start: 'top top',
-    end: '+=300%',
+    end: '+=450%',
     pin: true,
     scrub: 1.2,
     animation: tl,
     anticipatePin: 1,
+    invalidateOnRefresh: true,
     onUpdate(self) { state.progress['hero'] = self.progress; },
   });
   destroyers.push(() => { st.kill(); tl.kill(); });

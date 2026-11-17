@@ -1,200 +1,166 @@
 /**
  * bean-scene.js
- * 3D bean anatomy section — pins the bean, animates rotation/dolly via scroll.
- * Exports: init(section, state, effective) → destroy()
+ * Scroll story: the bean spins (frame sequence scrubbed by scroll), splits open,
+ * and its anatomy callouts appear one by one with drawn lines.
+ * Text lives in the Liquid HTML; this file only moves things.
  */
-
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import * as THREE from 'three';
-import { initStage, getStage, destroyStage } from '../stage.js';
-import { createBean, destroyBean } from '../bean.js';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const BEAN_SCALE = 1.7;
+// Anchor point of each slot on the cross-section, as offsets from the bean box centre (fractions of its size)
+const ANCHORS = [
+  { x: -0.449, y: 0.03 },   // slot 0: outer left rim (silver skin)
+  { x: 0.033,  y: -0.12 },  // slot 1: the crease
+  { x: -0.161, y: 0.148 },  // slot 2: porous interior
+  { x: 0.257,  y: 0.283 },  // slot 3: glossy outer shell
+];
 
-export async function init(section, state, effective) {
-  if (!section) return null;
-  if (effective === 'off') return null;
+export function init(section, state, effective) {
+  if (!section || effective === 'off') return null;
+  if (effective !== 'full') return () => {};
 
-  // ── Stage init (singleton guard) ──────────────────────────────────────────
-  if (!window.__stageInited) {
-    initStage();
-    window.__stageInited = true;
+  const stage   = section.querySelector('.anat__stage');
+  const head    = section.querySelector('.anat__head');
+  const box     = section.querySelector('.anat__bean');
+  const frame0  = section.querySelector('.anat__frame0');
+  const canvas  = section.querySelector('.anat__canvas');
+  const cut     = section.querySelector('.anat__cut');
+  const svg     = section.querySelector('.anat__lines');
+  const cards   = [...section.querySelectorAll('.anat__card')];
+  const ctx     = canvas.getContext('2d');
+
+  const count = parseInt(section.dataset.spinCount || '72', 10);
+  const url0  = section.dataset.spinUrl;
+  const urlFor = (i) => url0.replace('bean-spin-000', `bean-spin-${String(i).padStart(3, '0')}`);
+
+  // ── Frame sequence ───────────────────────────────────────────────────────
+  const frames = new Array(count);
+  let loaded = 0, current = 0, ready = false;
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+
+  function sizeCanvas() {
+    const s = box.clientWidth;
+    canvas.width = Math.round(s * dpr);
+    canvas.height = Math.round(s * dpr);
+    draw(current);
   }
-
-  const stage    = getStage();
-  const camera   = stage.getCamera();
-  const scene    = stage.getScene();
-  const renderer = stage.getRenderer();
-  const floor    = stage.getFloor();
-
-  const canvasWrap = section.querySelector('.bean-anatomy__canvas-wrap');
-
-  const canvas = renderer.domElement;
-  canvas.style.opacity = '0';
-  canvas.classList.add('is-active');
-
-  // Floor position
-  if (floor) floor.position.y = -1.4;
-
-  // Camera initial position
-  camera.position.set(0, 0.6, 13);
-  camera.fov = 24;
-  camera.updateProjectionMatrix();
-
-  // ── Bean ─────────────────────────────────────────────────────────────────
-  const bean = createBean({ stageIndex: 2, seed: 3 });
-  bean.mesh.scale.setScalar(BEAN_SCALE);
-  const owner = {
-    wrap: canvasWrap, mesh: bean.mesh,
-    setup() { camera.fov = 24; camera.position.set(0, 0.6, 13); camera.updateProjectionMatrix(); },
-  };
-  const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) stage.activate(owner); }, { threshold: 0.15 });
-  if (canvasWrap) io.observe(canvasWrap);
-
-  // Canvas fade-in
-  gsap.to(canvas, { opacity: 1, duration: 0.3, delay: 0.1 });
-
-  const destroyers = [];
-  let scrollActive = false;
-  let scrollTimeout = null;
-
-  // ── Camera target state ───────────────────────────────────────────────────
-  const _camTargetPos = new THREE.Vector3(0, 0.6, 13);
-  let _rotYTarget = 0;
-
-  // ── Ticker ────────────────────────────────────────────────────────────────
-  const tick = (time, delta) => {
-    if (!stage.isActive(owner)) return;
-    const dt = delta / 1000;
-    const p  = state.progress['bean'] || 0;
-
-    // Rotation target from scroll
-    _rotYTarget = p * Math.PI * 2;
-    bean.mesh.rotation.y = THREE.MathUtils.damp(bean.mesh.rotation.y, _rotYTarget, 4, dt);
-
-    // Idle float
-    if (effective === 'full') {
-      bean.mesh.position.y = Math.sin(time * 1.6) * 0.06;
-      bean.mesh.rotation.z = Math.sin(time * 0.8) * 0.04;
-
-      // Idle slow rotation when scroll not active
-      if (!scrollActive) {
-        bean.mesh.rotation.y += dt * 0.2;
-      }
-    }
-
-    // Dolly & orbit
-    _camTargetPos.z = THREE.MathUtils.lerp(13, 9.5, p);
-    _camTargetPos.x = Math.sin(p * Math.PI) * Math.tan(8 * Math.PI / 180) * _camTargetPos.z * 0.5;
-
-    camera.position.x = THREE.MathUtils.damp(camera.position.x, _camTargetPos.x, 4, dt);
-    camera.position.z = THREE.MathUtils.damp(camera.position.z, _camTargetPos.z, 4, dt);
-  };
-
-  gsap.ticker.add(tick);
-  destroyers.push(() => gsap.ticker.remove(tick));
-
-  // ── Scroll pin (full only) ────────────────────────────────────────────────
-  if (effective === 'full') {
-    const pinWrap = section.querySelector('.bean-anatomy__pin-wrap');
-    if (pinWrap) {
-      const cards     = section.querySelectorAll('.bean-anatomy__card');
-      const cardLines = section.querySelectorAll('.bean-anatomy__card-line');
-      const CARD_STOPS = [0.15, 0.35, 0.55, 0.75];
-
-      const st = ScrollTrigger.create({
-        trigger: section,
-        start: 'top top',
-        end: '+=250%',
-        pin: true,
-        scrub: 1.2,
-        onUpdate(self) {
-          const p = self.progress;
-          state.progress['bean'] = p;
-
-          // Mark scroll as active, then reset after 200ms quiet
-          scrollActive = true;
-          clearTimeout(scrollTimeout);
-          scrollTimeout = setTimeout(() => { scrollActive = false; }, 200);
-
-          // Card reveals
-          cards.forEach((card, i) => {
-            const stop = CARD_STOPS[i] ?? (i * 0.2 + 0.1);
-            const alpha = Math.min(1, Math.max(0.25, (p - stop + 0.1) / 0.1));
-            card.style.opacity = alpha;
-          });
-          cardLines.forEach((line, i) => {
-            const stop = CARD_STOPS[i] ?? (i * 0.2 + 0.1);
-            const sx = Math.min(1, Math.max(0, (p - stop + 0.05) / 0.1));
-            line.style.transform = `scaleX(${sx})`;
-          });
-        },
-      });
-
-      destroyers.push(() => st.kill());
-    }
-  } else {
-    // Reduced: static pose
-    bean.mesh.rotation.y = 0.5;
-    bean.mesh.rotation.z = 0.05;
-    camera.position.z = 13;
-    gsap.from(canvas, { opacity: 0, duration: 0.6 });
+  function draw(i) {
+    const img = frames[i];
+    if (!img || !img.complete || !img.naturalWidth) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
   }
-
-  // ── Pointer parallax (hover:hover, full only) ─────────────────────────────
-  const hoverQuery = window.matchMedia('(hover: hover)');
-  if (hoverQuery.matches && effective === 'full') {
-    const onMove = (e) => {
-      const rect = section.getBoundingClientRect();
-      const nx = ((e.clientX - rect.left) / rect.width  - 0.5) * 2;
-      const ny = ((e.clientY - rect.top)  / rect.height - 0.5) * 2;
-      camera.position.x += (nx * 1.2 - camera.position.x) * 0.05;
-      camera.position.y += (-ny * 0.6 - camera.position.y + 0.6) * 0.05;
+  function showFrame(f) {
+    const i = Math.max(0, Math.min(count - 1, Math.floor(f)));
+    if (i !== current || !ready) { current = i; draw(i); }
+  }
+  for (let i = 0; i < count; i++) {
+    const im = new Image();
+    im.decoding = 'async';
+    im.onload = () => {
+      loaded++;
+      if (i === 0) { sizeCanvas(); }
+      if (loaded === count) { ready = true; }
     };
-    section.addEventListener('mousemove', onMove);
-    destroyers.push(() => section.removeEventListener('mousemove', onMove));
+    im.src = urlFor(i);
+    frames[i] = im;
   }
 
-  // ── Raycaster hover on bean mesh ──────────────────────────────────────────
-  if (hoverQuery.matches && effective === 'full') {
-    const raycaster  = new THREE.Raycaster();
-    const pointer    = new THREE.Vector2();
-    let isHovered    = false;
-    const rim        = stage.getRim();
-    const rimBase    = rim ? rim.intensity : 0.6;
+  // ── Lines: from anchor on the bean to the edge of each card (desktop) ────
+  const NS = 'http://www.w3.org/2000/svg';
+  const lines = [];
+  function buildLines() {
+    svg.innerHTML = '';
+    lines.length = 0;
+    const sr = stage.getBoundingClientRect();
+    svg.setAttribute('viewBox', `0 0 ${sr.width} ${sr.height}`);
+    const br = box.getBoundingClientRect();
+    const cx = br.left - sr.left + br.width / 2;
+    const cy = br.top - sr.top + br.height / 2;
+    cards.forEach((card) => {
+      const slot = parseInt(card.dataset.slot, 10);
+      const a = ANCHORS[slot];
+      const ax = cx + a.x * br.width, ay = cy + a.y * br.height;
+      const r = card.getBoundingClientRect();
+      const left = slot % 2 === 0;
+      const ex = left ? r.right - sr.left + 10 : r.left - sr.left - 10;
+      const ey = r.top - sr.top + 22;
+      const path = document.createElementNS(NS, 'polyline');
+      path.setAttribute('points', `${ax},${ay} ${ax + (left ? -1 : 1) * 40},${ey} ${ex},${ey}`);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('class', 'anat__line');
+      const dot = document.createElementNS(NS, 'circle');
+      dot.setAttribute('cx', ax); dot.setAttribute('cy', ay); dot.setAttribute('r', 0);
+      dot.setAttribute('class', 'anat__dot');
+      svg.appendChild(path); svg.appendChild(dot);
+      const len = path.getTotalLength();
+      path.style.strokeDasharray = len;
+      lines.push({ path, dot, len });
+    });
+  }
 
-    const onMove = (e) => {
-      const rect = renderer.domElement.getBoundingClientRect();
-      pointer.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
-      pointer.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
+  const mm = gsap.matchMedia();
+  mm.add({ desktop: '(min-width: 900px)', mobile: '(max-width: 899px)' }, (mmCtx) => {
+    const { desktop } = mmCtx.conditions;
+    const spin = { f: 0 };
+    const tl = gsap.timeline({ defaults: { ease: 'power2.inOut' } });
 
-      raycaster.setFromCamera(pointer, camera);
-      const hits = raycaster.intersectObject(bean.mesh, true);
+    gsap.set(cut, { opacity: 0, scale: 0.9, rotation: -4 });
+    gsap.set(head, { opacity: 0, y: 16 });
+    gsap.set(cards, { opacity: 0, y: 18 });
+    if (desktop) buildLines();
+    lines.forEach((l) => { l.path.style.strokeDashoffset = l.len; });
 
-      if (hits.length > 0 && !isHovered) {
-        isHovered = true;
-        gsap.to(bean.mesh.scale, { x: BEAN_SCALE * 1.05, y: BEAN_SCALE * 1.05, z: BEAN_SCALE * 1.05, ease: 'elastic.out(1,.5)', duration: 0.6 });
-        if (rim) gsap.to(rim, { intensity: 1.0, duration: 0.3 });
-      } else if (hits.length === 0 && isHovered) {
-        isHovered = false;
-        gsap.to(bean.mesh.scale, { x: BEAN_SCALE, y: BEAN_SCALE, z: BEAN_SCALE, ease: 'power3.out', duration: 0.4 });
-        if (rim) gsap.to(rim, { intensity: rimBase, duration: 0.3 });
+    // 0–6%: heading arrives
+    tl.to(head, { opacity: 1, y: 0, duration: 0.06 }, 0);
+    // 4–42%: one full turn, driven by the scroll
+    tl.to(spin, { f: count - 0.01, duration: 0.38, ease: 'power1.inOut', onUpdate: () => showFrame(spin.f) }, 0.04);
+    // 44–54%: the bean opens (photo cross-fades to the cut-open bean)
+    tl.to(canvas, { opacity: 0, duration: 0.08, ease: 'power1.inOut' }, 0.45);
+    tl.to(cut, { opacity: 1, scale: 1, rotation: 0, duration: 0.1, ease: 'power2.out' }, 0.45);
+
+    // 56–100%: callouts appear one by one
+    const t0 = 0.57, gap = 0.11;
+    cards.forEach((card, i) => {
+      const t = t0 + i * gap;
+      if (desktop) {
+        const l = lines[i];
+        if (l) {
+          tl.to(l.dot, { attr: { r: 5 }, duration: 0.02, ease: 'back.out(3)' }, t);
+          tl.to(l.path, { strokeDashoffset: 0, duration: 0.05, ease: 'power1.out' }, t + 0.015);
+        }
+        tl.to(card, { opacity: 1, y: 0, duration: 0.05, ease: 'power2.out' }, t + 0.05);
+      } else {
+        // mobile: one card at a time, replacing the previous
+        tl.to(card, { opacity: 1, y: 0, duration: 0.05, ease: 'power2.out' }, t);
+        if (i < cards.length - 1) tl.to(card, { opacity: 0, y: -12, duration: 0.04 }, t + gap - 0.045);
       }
-    };
+    });
+    tl.to({}, { duration: 0.001 }, 1);
 
-    section.addEventListener('mousemove', onMove);
-    destroyers.push(() => section.removeEventListener('mousemove', onMove));
-  }
+    const st = ScrollTrigger.create({
+      trigger: section,
+      start: 'top top',
+      end: '+=600%',
+      pin: true,
+      scrub: 1.2,
+      animation: tl,
+      anticipatePin: 1,
+      invalidateOnRefresh: true,
+      onRefresh: () => { if (ready) sizeCanvas(); },
+      onUpdate(self) { state.progress['bean'] = self.progress; },
+    });
 
-  // ── Destroy ───────────────────────────────────────────────────────────────
+    return () => { st.kill(); tl.kill(); svg.innerHTML = ''; lines.length = 0; };
+  });
+
+  const onResize = () => { sizeCanvas(); };
+  window.addEventListener('resize', onResize);
+
   return function destroy() {
-    clearTimeout(scrollTimeout);
-    if (canvasWrap) canvasWrap.classList.remove('is-3d-active');
-    io.disconnect();
-    destroyers.forEach(fn => { try { fn(); } catch {} });
-    destroyBean(bean);
+    window.removeEventListener('resize', onResize);
+    mm.revert();
   };
 }

@@ -54,7 +54,7 @@ async function boot() {
   const sectionDefs = [
     { selector: '.hero', load: () => import('./scenes/hero-scene.js') },
     { selector: '.story', load: () => import('./scenes/story-scene.js') },
-    { selector: '.bean-anatomy', load: () => import('./scenes/bean-scene.js') },
+    { selector: '.anat', load: () => import('./scenes/bean-scene.js') },
     { selector: '.roast-sim', load: () => import('./scenes/simulator-scene.js') },
     { selector: '.catalog', load: () => import('./scenes/catalog-scene.js') },
     { selector: '.site-footer', load: () => import('./scenes/footer-scene.js') },

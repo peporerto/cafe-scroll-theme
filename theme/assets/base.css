@@ -110,69 +110,8 @@ html.js-motion[data-motion-effective="full"] .story__phrase-line,
 html.js-motion[data-motion-effective="reduced"] .story__phrase-line { opacity: 0; transform: translateY(1rem); }
 html.js-motion .story__stat { opacity: 0; transform: translateY(1.5rem); }
 
-/* --- Bean Anatomy --- */
-.bean-anatomy {
-  position: relative;
-  min-height: 100vh;
-  padding: 0;
-}
-.bean-anatomy__pin-wrap {
-  position: relative;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  min-height: 100vh;
-  gap: 2rem;
-  padding: 4rem clamp(1rem, 5vw, 4rem);
-  align-items: center;
-}
-
 @media (max-width: 768px) {
-  .bean-anatomy__pin-wrap { grid-template-columns: 1fr; }
 }
-
-.bean-anatomy__canvas-wrap {
-  position: relative;
-  aspect-ratio: 1;
-  max-width: 500px;
-  margin: 0 auto;
-}
-.bean-anatomy__canvas {
-  width: 100%; height: 100%;
-  display: block;
-}
-.bean-anatomy__fallback {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
-  object-fit: contain;
-}
-.bean-anatomy__fallback--placeholder {
-  background: radial-gradient(circle, #43271A 0%, var(--color-bg) 70%);
-  border-radius: 50%;
-}
-/* When JS+3D active, hide fallback */
-html.js-motion .bean-anatomy__canvas.is-active ~ .bean-anatomy__fallback { display: none; }
-/* When 3D not active, hide canvas */
-.bean-anatomy__canvas:not(.is-active) { display: none; }
-
-.bean-anatomy__cards {
-  display: flex; flex-direction: column; gap: 2rem;
-}
-.bean-anatomy__card {
-  padding: 1.5rem;
-  border-left: 3px solid var(--color-accent);
-  opacity: 1; /* visible by default (no-JS) */
-}
-.bean-anatomy__card-line {
-  width: 40px; height: 2px;
-  background: var(--color-accent);
-  margin-bottom: .75rem;
-  transform-origin: left;
-}
-.bean-anatomy__card-title { margin: 0 0 .5rem; font-size: 1.1rem; font-weight: 700; }
-.bean-anatomy__card-text { margin: 0; font-size: .9rem; color: var(--color-muted); }
-
-html.js-motion[data-motion-effective="full"] .bean-anatomy__card { opacity: .25; }
-html.js-motion[data-motion-effective="full"] .bean-anatomy__card-line { transform: scaleX(0); }
 
 /* --- Roast Simulator --- */
 .roast-sim {
@@ -319,25 +258,6 @@ html.js-motion .catalog__card { opacity: 0; transform: translateY(24px); }
   background: radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(0, 0, 0, 0.32) 100%);
 }
 
-/* Hero cutout (bean trajectory arc) */
-.hero__cutout {
-  position: absolute;
-  inset: 0;
-  z-index: 6;
-  pointer-events: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.hero__cutout-img {
-  width: clamp(180px, 28vw, 440px);
-  height: auto;
-  object-fit: contain;
-}
-html.js-motion[data-motion-effective="full"] .hero__cutout-img {
-  opacity: 0;
-}
-
 /* Hero label revealed at end of scroll */
 .hero__label {
   position: absolute;
@@ -369,38 +289,6 @@ html.js-motion[data-motion-effective="full"] .hero__label {
   opacity: 1;
 }
 
-/* Canvas container background depth gradient (behind canvas) */
-.bean-anatomy__canvas-wrap {
-  position: relative;
-}
-.bean-anatomy__canvas-wrap::before,
-.roast-sim__canvas-col::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at 50% 50%, #2a1c14 0%, var(--color-bg) 70%);
-  border-radius: inherit;
-  z-index: -1;
-  pointer-events: none;
-}
-
-/* Fallback hiding when 3D is active */
-.bean-anatomy__canvas-wrap.is-3d-active .bean-anatomy__fallback,
-.roast-sim__canvas-col.is-3d-active .roast-sim__fallback {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-}
-html.js-motion .bean-anatomy__canvas-wrap.is-3d-active .bean-anatomy__fallback,
-html.js-motion .roast-sim__canvas-col.is-3d-active .roast-sim__fallback {
-  display: none;
-}
-
-/* Card lines in bean anatomy */
-.bean-anatomy__card-line {
-  transition: transform 0.4s ease;
-}
-
 /* Story phrase lines (split via JS) */
 .story__phrase-line {
   display: block;
@@ -421,14 +309,11 @@ html.js-motion[data-motion-effective="reduced"] .story__phrase-line {
 html[data-motion-effective="reduced"] .hero__cutout { display: none !important; }
 html[data-motion-effective="off"] .hero__cutout { display: none !important; }
 html[data-motion-effective="off"] .stage-canvas { display: none !important; }
-html[data-motion-effective="off"] .bean-anatomy__fallback { opacity: 1 !important; display: block !important; }
 html[data-motion-effective="off"] .roast-sim__fallback { opacity: 1 !important; display: block !important; }
 
 /* Depth effects selector: Light / Off */
 html[data-depth="light"] .hero__vignette { display: none !important; }
 html[data-depth="off"] .hero__vignette { display: none !important; }
-html[data-depth="off"] .bean-anatomy__canvas-wrap::before,
-html[data-depth="off"] .roast-sim__canvas-col::before { display: none !important; }
 
 /* --- Hero scenery fallback (no photos): layered ridges with depth --- */
 .hero__scenery { position: relative; overflow: hidden; background: linear-gradient(180deg, #14110f 0%, #2a1c14 45%, #3b2a1d 62%, #14110f 100%); }
@@ -437,8 +322,6 @@ html[data-depth="off"] .roast-sim__canvas-col::before { display: none !important
 .hero__ridge[data-depth="0.5"] { height: 52%; }
 .hero__ridge[data-depth="0.85"] { height: 40%; }
 .hero__mist { position: absolute; inset: auto 0 0 0; height: 45%; background: linear-gradient(180deg, transparent, rgba(20,17,15,.75)); }
-/* Stage must have real height */
-.bean-anatomy__canvas-wrap { min-height: 280px; }
 
 /* Simulator: canvas on top, slider below it */
 .roast-sim__canvas-col { min-height: 520px; display: flex; flex-direction: column; justify-content: flex-end; }
@@ -459,4 +342,74 @@ html[data-depth="off"] .roast-sim__canvas-col::before { display: none !important
 .hero__layer--far .hero__img, .hero__layer--macro .hero__img { object-position: var(--focus-x, 50%) var(--focus-y, 50%); }
 @media (max-width: 899px) {
   .hero__content { align-content: start; padding-top: 5.5rem; background: linear-gradient(180deg, rgba(20,17,15,.7) 0%, rgba(20,17,15,0) 55%); }
+}
+
+/* === Hero v3: bag opens, we go inside, a bean jumps out === */
+:root { --bean-size: clamp(280px, 62vh, 620px); --color-studio: #ECEAE4; }
+.hero__zoom { position: absolute; inset: 0; z-index: 2; }
+.hero__zoom .hero__layer { z-index: auto; }
+.hero__layer--open { z-index: 1; }
+.hero__layer--inside { z-index: 3; }
+.hero__layer--macro { z-index: 1; }
+.hero__wash { position: absolute; inset: 0; z-index: 4; background: var(--color-studio); pointer-events: none; }
+html.js-motion[data-motion-effective="full"] .hero__wash { opacity: 0; }
+html:not(.js-motion) .hero__wash, html[data-motion-effective="off"] .hero__wash, html[data-motion-effective="reduced"] .hero__wash { display: none; }
+html.js-motion[data-motion-effective="full"] .hero__layer--open, html.js-motion[data-motion-effective="full"] .hero__layer--inside { opacity: 0; }
+html:not(.js-motion) .hero__layer--open, html:not(.js-motion) .hero__layer--inside,
+html[data-motion-effective="off"] .hero__layer--open, html[data-motion-effective="off"] .hero__layer--inside,
+html[data-motion-effective="reduced"] .hero__layer--open, html[data-motion-effective="reduced"] .hero__layer--inside { display: none; }
+.hero__layer--open .hero__img, .hero__layer--inside .hero__img { object-position: var(--focus-x, 50%) var(--focus-y, 50%); }
+/* shared box: the jumping bean (hero) and the spinning bean (next section) have identical geometry */
+.bean-box { position: relative; width: var(--bean-size); height: var(--bean-size); }
+.bean-box img, .bean-box canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.bean-box__shadow { position: absolute; left: 22%; right: 22%; bottom: 7%; height: 7%; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(40,34,28,.38) 0%, rgba(40,34,28,0) 70%); filter: blur(4px); }
+.hero__cutout { position: absolute; left: 50%; top: 50%; margin: calc(var(--bean-size) / -2) 0 0 calc(var(--bean-size) / -2); z-index: 6; pointer-events: none; }
+html.js-motion[data-motion-effective="full"] .hero__cutout-img { opacity: 1; }
+html.js-motion[data-motion-effective="full"] .hero__cutout .bean-box__shadow { opacity: 0; }
+
+/* === Bean anatomy v3: spin, split open, callouts appear one by one === */
+.anat { --ink: #1e1a16; --ink-muted: #6b645b; background: var(--color-studio, #ECEAE4); color: var(--ink); position: relative; }
+.anat__stage { position: relative; min-height: 100vh; overflow: hidden; display: grid; place-items: center; padding: 6rem 1rem 3rem; }
+.anat__head { position: absolute; top: 8vh; left: 0; right: 0; text-align: center; z-index: 3; }
+.anat__eyebrow { margin: 0 0 .35rem; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .8rem; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-muted); }
+.anat__title { margin: 0; font-size: clamp(1.9rem, 4.4vw, 3.4rem); line-height: 1.05; font-weight: 800; letter-spacing: -.02em; }
+.anat__bean { z-index: 2; }
+.anat__canvas { opacity: 1; }
+.anat__frame0 { z-index: 0; }
+.anat__canvas { z-index: 1; }
+.bean-box .anat__cut { inset: 4%; width: 92%; height: 92%; object-fit: contain; z-index: 2; }
+.anat__lines { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none; overflow: visible; }
+.anat__line { stroke: var(--ink); stroke-width: 1.25; }
+.anat__dot { fill: var(--ink); stroke: var(--color-studio, #ECEAE4); stroke-width: 2.5; }
+.anat__lines { filter: drop-shadow(0 0 1.5px rgba(236,234,228,.95)); }
+.anat__cards { list-style: none; margin: 0; padding: 0; }
+.anat__card { position: absolute; z-index: 3; width: min(22rem, 38vw); }
+.anat__card[data-slot="0"] { left: 5vw; top: 26%; text-align: right; }
+.anat__card[data-slot="1"] { right: 5vw; top: 20%; }
+.anat__card[data-slot="2"] { left: 5vw; bottom: 20%; text-align: right; }
+.anat__card[data-slot="3"] { right: 5vw; bottom: 16%; }
+.anat__card-title { margin: 0 0 .35rem; font-size: 1.15rem; font-weight: 700; }
+.anat__card-text { margin: 0; font-size: .95rem; line-height: 1.5; color: var(--ink-muted); }
+html:not(.js-motion) .anat__cut, html[data-motion-effective="off"] .anat__cut, html[data-motion-effective="reduced"] .anat__cut { display: none; }
+html:not(.js-motion) .anat__canvas, html[data-motion-effective="off"] .anat__canvas, html[data-motion-effective="reduced"] .anat__canvas { display: none; }
+html:not(.js-motion) .anat__lines, html[data-motion-effective="off"] .anat__lines, html[data-motion-effective="reduced"] .anat__lines { display: none; }
+html.js-motion[data-motion-effective="full"] .anat__frame0 { visibility: hidden; }
+html.js-motion[data-motion-effective="full"] .anat__canvas:not(.has-frame) { opacity: 1; }
+/* no-motion layouts: bean on top, cards as a plain list */
+html:not(.js-motion) .anat__stage, html[data-motion-effective="off"] .anat__stage, html[data-motion-effective="reduced"] .anat__stage { display: block; min-height: 0; padding-top: 7rem; }
+html:not(.js-motion) .anat__bean, html[data-motion-effective="off"] .anat__bean, html[data-motion-effective="reduced"] .anat__bean { margin: 0 auto 2rem; }
+html:not(.js-motion) .anat__card, html[data-motion-effective="off"] .anat__card, html[data-motion-effective="reduced"] .anat__card { position: static; width: auto; max-width: 32rem; margin: 0 auto 1.25rem; text-align: left !important; }
+@media (max-width: 899px) {
+  :root { --bean-size: clamp(240px, 38vh, 380px); }
+  .anat__stage { place-items: start center; padding-top: 11rem; }
+  .anat__bean { margin-top: 0; }
+  .anat__card { left: 1rem !important; right: 1rem !important; width: auto; top: auto !important; bottom: 12vh !important; text-align: left !important; }
+}
+
+/* Hero cutout only exists in the full-motion sequence (no-JS and reduced motion see the plain hero) */
+.hero__cutout { display: none; }
+html.js-motion[data-motion-effective="full"] .hero__cutout { display: block; }
+@media (max-width: 899px) {
+  .hero__subtext { max-width: 15rem; font-size: .85rem; }
+  .hero__content { padding-top: 4.2rem; }
 }

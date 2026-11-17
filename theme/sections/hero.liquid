@@ -6,11 +6,28 @@
   data-focus-x="{{ section.settings.focus_x | default: 34 }}"
   data-focus-y="{{ section.settings.focus_y | default: 58 }}"
   style="--focus-x: {{ section.settings.focus_x | default: 34 }}%; --focus-y: {{ section.settings.focus_y | default: 58 }}%;"
-  data-cutout-exists="{% if section.settings.image_bean_cutout != blank %}true{% else %}false{% endif %}"
 >
   <div class="hero__pin-wrap">
-    {%- comment -%} Far layer: plantation bag {%- endcomment -%}
-    <div class="hero__layer hero__layer--far">
+    {%- comment -%} Layer 1: macro pile of beans, revealed by the iris {%- endcomment -%}
+    <div class="hero__layer hero__layer--macro">
+      {%- if section.settings.image_macro != blank %}
+        {{
+          section.settings.image_macro
+          | image_url: width: 2400
+          | image_tag:
+            class: 'hero__img hero__img--macro',
+            loading: 'lazy',
+            widths: '600,900,1200,1800,2400',
+            sizes: '100vw'
+        }}
+      {%- else -%}
+        <div class="hero__img hero__img--macro hero__img--placeholder" style="background:radial-gradient(ellipse at 50% 55%, #4a2f1e 0%, #2a1c14 45%, #14110f 100%)"></div>
+      {%- endif %}
+    </div>
+
+    {%- comment -%} Layers 2: zoom group = closed bag + open bag (cross-fade = the bag opens) {%- endcomment -%}
+    <div class="hero__zoom">
+      <div class="hero__layer hero__layer--far">
       {%- if section.settings.image_far != blank %}
         {{
           section.settings.image_far
@@ -31,39 +48,44 @@
           <div class="hero__mist"></div>
         </div>
       {%- endif %}
-    </div>
-
-    {%- comment -%} Macro layer: bean close-up, revealed via clip-path {%- endcomment -%}
-    <div class="hero__layer hero__layer--macro">
-      {%- if section.settings.image_macro != blank %}
+      </div>
+      <div class="hero__layer hero__layer--open">
+      {%- if section.settings.image_open != blank %}
         {{
-          section.settings.image_macro
+          section.settings.image_open
           | image_url: width: 2400
           | image_tag:
-            class: 'hero__img hero__img--macro',
+            class: 'hero__img hero__img--open',
             loading: 'lazy',
             widths: '600,900,1200,1800,2400',
             sizes: '100vw'
         }}
-      {%- else -%}
-        <div class="hero__img hero__img--macro hero__img--placeholder" style="background:radial-gradient(ellipse at 50% 55%, #4a2f1e 0%, #2a1c14 45%, #14110f 100%)"></div>
+      {%- endif %}
+      </div>
+    </div>
+
+    {%- comment -%} Layer 3: looking inside the open bag {%- endcomment -%}
+    <div class="hero__layer hero__layer--inside">
+      {%- if section.settings.image_inside != blank %}
+        {{
+          section.settings.image_inside
+          | image_url: width: 2400
+          | image_tag:
+            class: 'hero__img hero__img--inside',
+            loading: 'lazy',
+            widths: '600,900,1200,1800,2400',
+            sizes: '100vw'
+        }}
       {%- endif %}
     </div>
 
-    {%- comment -%} Optional bean cutout for 3D trajectory arc {%- endcomment -%}
-    {%- if section.settings.image_bean_cutout != blank %}
-      <div class="hero__cutout" aria-hidden="true">
-        {{
-          section.settings.image_bean_cutout
-          | image_url: width: 800
-          | image_tag:
-            class: 'hero__cutout-img',
-            loading: 'lazy',
-            widths: '400,800',
-            sizes: '40vw'
-        }}
-      </div>
-    {%- endif %}
+    <div class="hero__wash" aria-hidden="true"></div>
+
+    {%- comment -%} The bean that jumps out: first frame of the spin sequence, so the hand-off to the next section is seamless {%- endcomment -%}
+    <div class="hero__cutout bean-box" aria-hidden="true">
+      <div class="bean-box__shadow"></div>
+      <img class="hero__cutout-img" src="{{ 'bean-spin-000.webp' | asset_url }}" alt="" width="560" height="560" loading="lazy">
+    </div>
 
     {%- comment -%} Text overlay {%- endcomment -%}
     <div class="hero__content">
@@ -76,10 +98,6 @@
       {%- endif %}
     </div>
 
-    {%- comment -%} Monochrome label revealed at the end of hero {%- endcomment -%}
-    <div class="hero__label" aria-hidden="true">
-      {{ section.settings.hero_label | default: '01 / Terroir & Cultivo' }}
-    </div>
   </div>
 
   {%- comment -%} CSS depth vignette {%- endcomment -%}
@@ -93,10 +111,10 @@
     { "type": "text", "id": "heading_line_1", "label": "Heading line 1", "default": "From the mountain" },
     { "type": "text", "id": "heading_line_2", "label": "Heading line 2", "default": "to your cup" },
     { "type": "textarea", "id": "subtext", "label": "Subtext", "default": "Single-origin specialty coffee, roasted to order." },
-    { "type": "text", "id": "hero_label", "label": "End label", "default": "01 / Terroir & Cultivo" },
-    { "type": "image_picker", "id": "image_far", "label": "Far image (plantation)" },
-    { "type": "image_picker", "id": "image_macro", "label": "Macro image (beans)" },
-    { "type": "image_picker", "id": "image_bean_cutout", "label": "Bean cutout PNG (optional)" },
+    { "type": "image_picker", "id": "image_far", "label": "Image 1: closed bag in the plantation" },
+    { "type": "image_picker", "id": "image_open", "label": "Image 2: same scene, bag open (optional)" },
+    { "type": "image_picker", "id": "image_inside", "label": "Image 3: looking inside the open bag (optional)" },
+    { "type": "image_picker", "id": "image_macro", "label": "Image 4: macro pile of beans" },
     { "type": "range", "id": "focus_x", "label": "Focus X %", "min": 0, "max": 100, "step": 1, "default": 34 },
     { "type": "range", "id": "focus_y", "label": "Focus Y %", "min": 0, "max": 100, "step": 1, "default": 58 }
   ],

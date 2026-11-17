@@ -13,7 +13,7 @@ const gsettings={}; for(const g of settingsSchema) for(const s of g.settings||[]
 const D='preview-images'; const has=f=>fs.existsSync(path.join(D,f)) ? '/'+D+'/'+f : undefined;
 const pick=(o)=>Object.fromEntries(Object.entries(o).filter(([,v])=>v));
 const imgs = {
-  hero: pick({ image_far: has('hero-far.jpg'), image_macro: has('hero-macro.jpg'), image_bean_cutout: has('hero-cutout.png') }),
+  hero: pick({ image_far: has('hero-far.jpg'), image_macro: has('hero-macro.jpg'), image_open: has('hero-open.jpg'), image_inside: has('hero-inside.jpg') }),
   'bean-anatomy': pick({ image_bean_still: has('bean-still.jpg') }),
 };
 function defaults(arr){const o={};for(const s of arr||[]) if(s.id) o[s.id]=s.default; return o;}
