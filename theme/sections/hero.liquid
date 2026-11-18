@@ -8,24 +8,7 @@
   style="--focus-x: {{ section.settings.focus_x | default: 34 }}%; --focus-y: {{ section.settings.focus_y | default: 58 }}%;"
 >
   <div class="hero__pin-wrap">
-    {%- comment -%} Layer 1: macro pile of beans, revealed by the iris {%- endcomment -%}
-    <div class="hero__layer hero__layer--macro">
-      {%- if section.settings.image_macro != blank %}
-        {{
-          section.settings.image_macro
-          | image_url: width: 2400
-          | image_tag:
-            class: 'hero__img hero__img--macro',
-            loading: 'lazy',
-            widths: '600,900,1200,1800,2400',
-            sizes: '100vw'
-        }}
-      {%- else -%}
-        <div class="hero__img hero__img--macro hero__img--placeholder" style="background:radial-gradient(ellipse at 50% 55%, #4a2f1e 0%, #2a1c14 45%, #14110f 100%)"></div>
-      {%- endif %}
-    </div>
-
-    {%- comment -%} Layers 2: zoom group = closed bag + open bag (cross-fade = the bag opens) {%- endcomment -%}
+    {%- comment -%} Layers: zoom group = closed bag + open bag (cross-fade = the bag opens) {%- endcomment -%}
     <div class="hero__zoom">
       <div class="hero__layer hero__layer--far">
       {%- if section.settings.image_far != blank %}
@@ -114,7 +97,6 @@
     { "type": "image_picker", "id": "image_far", "label": "Image 1: closed bag in the plantation" },
     { "type": "image_picker", "id": "image_open", "label": "Image 2: same scene, bag open (optional)" },
     { "type": "image_picker", "id": "image_inside", "label": "Image 3: looking inside the open bag (optional)" },
-    { "type": "image_picker", "id": "image_macro", "label": "Image 4: macro pile of beans" },
     { "type": "range", "id": "focus_x", "label": "Focus X %", "min": 0, "max": 100, "step": 1, "default": 34 },
     { "type": "range", "id": "focus_y", "label": "Focus Y %", "min": 0, "max": 100, "step": 1, "default": 58 }
   ],

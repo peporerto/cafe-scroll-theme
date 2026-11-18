@@ -16,7 +16,6 @@ export function init(section, state, effective) {
   const layerFar     = section.querySelector('.hero__layer--far');
   const layerOpen    = section.querySelector('.hero__layer--open');
   const layerInside  = section.querySelector('.hero__layer--inside');
-  const layerMacro   = section.querySelector('.hero__layer--macro');
   const wash         = section.querySelector('.hero__wash');
   const content      = section.querySelector('.hero__content');
   const headingLines = section.querySelectorAll('.hero__heading-line');
@@ -77,43 +76,30 @@ export function init(section, state, effective) {
     tl.fromTo(layerInside, { opacity: 0, scale: 1.05 }, { opacity: 1, scale: 1, duration: 0.14, ease: 'power1.inOut' }, 0.32);
   }
 
-  // 42–68%: iris opens from the bag mouth onto the pile of beans
-  if (layerMacro) {
-    const ox = (hasInside ? INSIDE_AT.x : OPEN_AT.x) * 100;
-    const oy = (hasInside ? INSIDE_AT.y : OPEN_AT.y) * 100;
-    tl.fromTo(layerMacro,
-      { clipPath: `circle(0% at ${ox}% ${oy}%)` },
-      { clipPath: `circle(150% at ${ox}% ${oy}%)`, duration: 0.26, ease: 'power2.in' }, 0.42);
-    tl.fromTo(layerMacro, { scale: 1.25 }, { scale: 1, duration: 0.5 }, 0.42);
-    // the layers above fade once the iris covers them
-    if (zoom)         tl.to(zoom,        { opacity: 0, duration: 0.08 }, 0.56);
-    if (layerInside)  tl.to(layerInside, { opacity: 0, duration: 0.08 }, 0.6);
-  }
-
-  // 56–78%: a bean jumps out of the pile, arcs toward the camera and lands in the middle
+  // 46–72%: a bean jumps out of the bag, arcs toward the camera and lands in the middle
   if (cutoutBox) {
     const startX = () => (INSIDE_AT.x - 0.5) * W();
     const startY = () => (INSIDE_AT.y - 0.5) * H();
     gsap.set(cutoutBox, { opacity: 0 });
-    tl.fromTo(cutoutBox, { opacity: 0 }, { opacity: 1, duration: 0.04, ease: 'none' }, 0.56);
+    tl.fromTo(cutoutBox, { opacity: 0 }, { opacity: 1, duration: 0.04, ease: 'none' }, 0.46);
     tl.fromTo(cutoutBox, { x: startX, scale: 0.16, rotation: -50 },
-      { x: 0, scale: 1, rotation: 0, duration: 0.22, ease: 'power2.out' }, 0.56);
-    tl.fromTo(cutoutBox, { y: startY }, { y: () => -0.26 * H(), duration: 0.11, ease: 'power2.out' }, 0.56);
-    tl.to(cutoutBox, { y: 0, duration: 0.11, ease: 'power2.in' }, 0.67);
+      { x: 0, scale: 1, rotation: 0, duration: 0.24, ease: 'power2.out' }, 0.46);
+    tl.fromTo(cutoutBox, { y: startY }, { y: () => -0.26 * H(), duration: 0.12, ease: 'power2.out' }, 0.46);
+    tl.to(cutoutBox, { y: 0, duration: 0.12, ease: 'power2.in' }, 0.58);
     // tiny landing bounce
-    tl.to(cutoutBox, { y: -14, duration: 0.025, ease: 'power1.out' }, 0.78);
-    tl.to(cutoutBox, { y: 0, duration: 0.03, ease: 'power1.in' }, 0.805);
+    tl.to(cutoutBox, { y: -14, duration: 0.025, ease: 'power1.out' }, 0.7);
+    tl.to(cutoutBox, { y: 0, duration: 0.03, ease: 'power1.in' }, 0.725);
   }
 
-  // 78–96%: the world turns to the light studio colour, the bean stays put
-  if (wash) tl.fromTo(wash, { opacity: 0 }, { opacity: 1, duration: 0.18, ease: 'power1.inOut' }, 0.78);
-  if (cutoutShadow) tl.fromTo(cutoutShadow, { opacity: 0 }, { opacity: 1, duration: 0.14 }, 0.82);
+  // 60–80%: the world turns to the light studio colour, the bean stays put
+  if (wash) tl.fromTo(wash, { opacity: 0 }, { opacity: 1, duration: 0.2, ease: 'power1.inOut' }, 0.6);
+  if (cutoutShadow) tl.fromTo(cutoutShadow, { opacity: 0 }, { opacity: 1, duration: 0.14 }, 0.72);
   tl.to({}, { duration: 0.001 }, 1); // fixes total duration at 1
 
   const st = ScrollTrigger.create({
     trigger: section,
     start: 'top top',
-    end: '+=450%',
+    end: '+=380%',
     pin: true,
     scrub: 1.2,
     animation: tl,

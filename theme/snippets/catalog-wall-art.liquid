@@ -1,0 +1,19 @@
+{%- comment -%}
+  The wall of niches, drawn either from a photo or, when no photo is set, in plain CSS.
+  Params: image (image_picker value, may be blank), alt (string), decorative (bool), blocks (section blocks)
+{%- endcomment -%}
+{%- if image != blank -%}
+  {%- if decorative -%}
+    {{ image | image_url: width: 2400 | image_tag: class: 'catalog__img', alt: '', loading: 'lazy', widths: '800,1200,1600,2400', sizes: '(min-width:900px) 100vw, 380vw' }}
+  {%- else -%}
+    {{ image | image_url: width: 2400 | image_tag: class: 'catalog__img', alt: alt, loading: 'lazy', widths: '800,1200,1600,2400', sizes: '(min-width:900px) 100vw, 380vw' }}
+  {%- endif -%}
+{%- else -%}
+  <div class="catalog__css-wall"{% unless decorative %} role="img" aria-label="{{ alt }}"{% endunless %}>
+    {%- for block in blocks limit: 4 -%}
+      <div class="catalog__css-niche" style="--i: {{ forloop.index0 }}">
+        <span class="catalog__css-bag"><i style="background: {{ block.settings.band_color }}"></i></span>
+      </div>
+    {%- endfor -%}
+  </div>
+{%- endif -%}
