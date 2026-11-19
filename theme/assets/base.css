@@ -382,36 +382,49 @@ html.js-motion[data-motion-effective="full"] .hero__cutout { display: block; }
 }
 
 
-/* === Catalog v2: wall of niches, the lights turn on === */
+/* === Catalog v3: wall of niches, light turns on with hover (swipe on touch) === */
 .catalog { background: #14110F; color: #F2EBDD; position: relative; }
-.catalog__stage { min-height: 100svh; display: grid; place-items: center; overflow: hidden; }
-.catalog__wrap { position: relative; width: min(100vw, calc((100svh - 3.6rem) * 2.15)); aspect-ratio: 1376 / 640; margin-inline: auto; overflow: hidden; }
-.catalog__wall { position: absolute; left: 0; top: 0; width: 100%; height: 120%; }
+.catalog__stage { padding: 5rem 0 3rem; }
+.catalog__wrap { position: relative; width: min(100%, 1700px); aspect-ratio: 1376 / 640; margin-inline: auto; overflow: hidden; }
+.catalog__scroller { position: absolute; inset: 0; }
+.catalog__track { position: absolute; left: 0; top: 0; width: 100%; height: 120%; }
+.catalog__wall { position: absolute; inset: 0; -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); }
 .catalog__art { position: absolute; inset: 0; }
 .catalog__img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .catalog__art--base { filter: sepia(.45) saturate(1.1) brightness(.6); }
 .catalog__art--lit {
-  display: none;
+  display: none; opacity: 0; transition: opacity .7s ease;
   filter: sepia(.55) saturate(1.3) brightness(.95) contrast(1.05);
   -webkit-mask-image: radial-gradient(ellipse 17% 34% at calc(var(--cx) * 1%) 46%, #000 35%, transparent 100%);
   mask-image: radial-gradient(ellipse 17% 34% at calc(var(--cx) * 1%) 46%, #000 35%, transparent 100%);
 }
-html.js-motion[data-motion-effective="full"] .catalog__art--base { filter: sepia(.4) saturate(.9) brightness(.17); }
-html.js-motion[data-motion-effective="full"] .catalog__art--lit { display: block; opacity: 0; will-change: opacity; }
-.catalog__shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(20,17,15,.9) 0%, rgba(20,17,15,0) 20%, rgba(20,17,15,0) 58%, rgba(20,17,15,.9) 80%, #14110F 100%); }
-.catalog__head { position: absolute; top: 4%; left: 0; right: 0; z-index: 2; text-align: center; padding-inline: 1rem; }
+.catalog__art--lit.is-lit { opacity: 1; transition-duration: .15s; animation: catalog-flicker .5s linear; }
+@keyframes catalog-flicker { 0% { opacity: 0; } 22% { opacity: .75; } 38% { opacity: .2; } 60% { opacity: 1; } 100% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .catalog__art--lit.is-lit { animation: none; } .catalog__art--lit { transition-duration: .01s; } }
+html.js-motion:is([data-motion-effective="full"], [data-motion-effective="reduced"]) .catalog__art--base { filter: sepia(.4) saturate(.9) brightness(.17); }
+html.js-motion:is([data-motion-effective="full"], [data-motion-effective="reduced"]) .catalog__art--lit { display: block; }
+
+.catalog__shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(20,17,15,.9) 0%, rgba(20,17,15,0) 17%, rgba(20,17,15,0) 48%, rgba(20,17,15,.9) 67%, #14110F 83%); }
+.catalog__head { position: absolute; top: 4%; left: 0; right: 0; z-index: 3; text-align: center; padding-inline: 1rem; pointer-events: none; }
 .catalog__title { margin: 0; font-size: clamp(1.9rem, 4vw, 3.2rem); font-weight: 800; letter-spacing: -.02em; line-height: 1.05; }
 .catalog__subtext { margin: .6rem 0 0; color: #C9BFAE; font-size: clamp(.95rem, 1.4vw, 1.1rem); }
+.catalog__hint { display: none; margin: .9rem 0 0; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .75rem; letter-spacing: .14em; text-transform: uppercase; color: var(--color-accent, #D9A441); }
+.catalog__hint::before { content: ""; display: inline-block; width: .5rem; height: .5rem; margin-right: .6rem; border-radius: 50%; background: currentColor; animation: catalog-pulse 1.8s ease-in-out infinite; }
+@keyframes catalog-pulse { 0%, 100% { opacity: .3; } 50% { opacity: 1; } }
+.catalog__hint-touch { display: none; }
+html.js-motion:is([data-motion-effective="full"], [data-motion-effective="reduced"]) .catalog__hint { display: block; }
+@media (hover: none), (max-width: 899px) { .catalog__hint-hover { display: none; } .catalog__hint-touch { display: inline; } }
+
 .catalog__list { list-style: none; margin: 0; padding: 0; }
-.catalog__item { position: absolute; z-index: 2; top: 77%; left: calc(var(--cx) * 1%); width: 20%; margin-left: -10%; text-align: center; }
+.catalog__item { position: absolute; z-index: 2; top: 64.2%; left: calc(var(--cx) * 1%); width: 20%; margin-left: -10%; text-align: center; scroll-snap-align: center; }
 .catalog__item-origin { display: inline-flex; align-items: center; gap: .5rem; font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--color-accent, #D9A441); }
 .catalog__item-origin::before { content: ""; width: .6rem; height: .6rem; border-radius: 50%; background: var(--band, currentColor); }
 .catalog__item-name { margin: .35rem 0 .4rem; font-size: clamp(1rem, 1.5vw, 1.3rem); font-weight: 700; line-height: 1.2; }
 .catalog__item-name a { color: inherit; text-decoration: none; background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat; transition: background-size .3s; }
 .catalog__item-name a:hover, .catalog__item-name a:focus-visible { background-size: 100% 1px; }
 .catalog__item-notes { margin: 0; font-size: clamp(.82rem, 1.1vw, .95rem); line-height: 1.45; color: #C9BFAE; }
-html.js-motion[data-motion-effective="full"] .catalog__item,
-html.js-motion[data-motion-effective="full"] .catalog__head { opacity: 0; }
+html.js-motion:is([data-motion-effective="full"], [data-motion-effective="reduced"]) .catalog__item { opacity: .45; transition: opacity .5s ease; }
+html.js-motion:is([data-motion-effective="full"], [data-motion-effective="reduced"]) .catalog__item.is-lit { opacity: 1; }
 
 /* CSS wall (used when no photo is set). Same niche geometry as the photo. */
 .catalog__css-wall { position: absolute; inset: 0; background: linear-gradient(180deg, #8d979f 0%, #7a848c 100%); box-shadow: inset 0 -2px 0 rgba(255,255,255,.12); }
@@ -421,19 +434,12 @@ html.js-motion[data-motion-effective="full"] .catalog__head { opacity: 0; }
 .catalog__css-bag::after { content: ""; position: absolute; left: 22%; right: 22%; top: 44%; height: 30%; background: #d9d3c6; }
 .catalog__css-bag i { position: absolute; left: 0; right: 0; top: 24%; height: 8%; }
 
+/* Phones: the wall is a swipeable strip, one niche centred at a time */
 @media (max-width: 899px) {
-  .catalog__stage { place-items: start center; }
-  .catalog__wrap { width: 100%; aspect-ratio: auto; overflow: visible; }
-  .catalog__wall { position: relative; width: 100%; height: auto; aspect-ratio: 1376 / 768; }
-  .catalog__head { position: static; padding: 5rem 1rem 1.5rem; }
-  .catalog__shade { display: none; }
-  .catalog__list { display: grid; gap: 1.75rem; padding: 2rem 1.25rem 4rem; }
-  .catalog__item { position: static; width: auto; margin: 0; text-align: left; }
-  html.js-motion[data-motion-effective="full"] .catalog__wrap { height: calc(100svh - 3.6rem); margin-top: 3.6rem; overflow: hidden; }
-  .catalog__item { top: auto; }
-  html.js-motion[data-motion-effective="full"] .catalog__wall { position: absolute; left: 0; width: 380vw; height: auto; top: calc(36% - 94.4vw); -webkit-mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent); mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent); }
-  html.js-motion[data-motion-effective="full"] .catalog__head { position: absolute; top: 3%; left: 0; right: 0; padding: 0 1rem; }
-  html.js-motion[data-motion-effective="full"] .catalog__shade { display: block; }
-  html.js-motion[data-motion-effective="full"] .catalog__list { position: absolute; left: 0; right: 0; bottom: 6svh; padding: 0 1.25rem; gap: 0; }
-  html.js-motion[data-motion-effective="full"] .catalog__item { grid-area: 1 / 1; }
+  .catalog__stage { padding: 4.5rem 0 2.5rem; }
+  .catalog__wrap { aspect-ratio: auto; overflow: visible; width: 100%; }
+  .catalog__head { position: static; padding: 0 1rem 1.5rem; }
+  .catalog__scroller { position: relative; inset: auto; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; }
+  .catalog__scroller::-webkit-scrollbar { display: none; }
+  .catalog__track { position: relative; width: 300vw; height: auto; aspect-ratio: 1376 / 768; margin-inline: 20vw; }
 }

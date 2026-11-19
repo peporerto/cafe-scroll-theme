@@ -12,35 +12,43 @@
         {%- if section.settings.subtext != blank %}
           <p class="catalog__subtext">{{ section.settings.subtext }}</p>
         {%- endif %}
+        <p class="catalog__hint" aria-hidden="true">
+          <span class="catalog__hint-hover">{{ section.settings.hint_hover }}</span>
+          <span class="catalog__hint-touch">{{ section.settings.hint_touch }}</span>
+        </p>
       </header>
 
-      <div class="catalog__wall">
-        <div class="catalog__art catalog__art--base">
-          {% render 'catalog-wall-art', image: section.settings.image_wall, alt: section.settings.wall_alt, decorative: false, blocks: section.blocks %}
-        </div>
-        {%- for block in section.blocks limit: 4 %}
-          <div class="catalog__art catalog__art--lit" aria-hidden="true" style="--cx: {{ cx_list[forloop.index0] }}">
-            {% render 'catalog-wall-art', image: section.settings.image_wall, decorative: true, blocks: section.blocks %}
+      <div class="catalog__scroller">
+        <div class="catalog__track">
+          <div class="catalog__wall">
+            <div class="catalog__art catalog__art--base">
+              {% render 'catalog-wall-art', image: section.settings.image_wall, alt: section.settings.wall_alt, decorative: false, blocks: section.blocks %}
+            </div>
+            {%- for block in section.blocks limit: 4 %}
+              <div class="catalog__art catalog__art--lit" aria-hidden="true" style="--cx: {{ cx_list[forloop.index0] }}">
+                {% render 'catalog-wall-art', image: section.settings.image_wall, decorative: true, blocks: section.blocks %}
+              </div>
+            {%- endfor %}
           </div>
-        {%- endfor %}
-      </div>
-      <div class="catalog__shade" aria-hidden="true"></div>
+          <div class="catalog__shade" aria-hidden="true"></div>
 
-      <ol class="catalog__list">
-        {%- for block in section.blocks limit: 4 %}
-          <li class="catalog__item" style="--cx: {{ cx_list[forloop.index0] }}; --band: {{ block.settings.band_color }}" {{ block.shopify_attributes }}>
-            <span class="catalog__item-origin">{{ block.settings.origin }}</span>
-            <h3 class="catalog__item-name">
-              {%- if block.settings.url != blank -%}
-                <a href="{{ block.settings.url }}">{{ block.settings.name }}</a>
-              {%- else -%}
-                {{ block.settings.name }}
-              {%- endif -%}
-            </h3>
-            <p class="catalog__item-notes">{{ block.settings.notes }}</p>
-          </li>
-        {%- endfor %}
-      </ol>
+          <ol class="catalog__list">
+            {%- for block in section.blocks limit: 4 %}
+              <li class="catalog__item" style="--cx: {{ cx_list[forloop.index0] }}; --band: {{ block.settings.band_color }}" {{ block.shopify_attributes }}>
+                <span class="catalog__item-origin">{{ block.settings.origin }}</span>
+                <h3 class="catalog__item-name">
+                  {%- if block.settings.url != blank -%}
+                    <a href="{{ block.settings.url }}">{{ block.settings.name }}</a>
+                  {%- else -%}
+                    {{ block.settings.name }}
+                  {%- endif -%}
+                </h3>
+                <p class="catalog__item-notes">{{ block.settings.notes }}</p>
+              </li>
+            {%- endfor %}
+          </ol>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -52,6 +60,8 @@
     { "type": "text", "id": "heading", "label": "Heading", "default": "Our origins" },
     { "type": "text", "id": "subtext", "label": "Subtext", "default": "Four single-origin coffees, each with its own story." },
     { "type": "image_picker", "id": "image_wall", "label": "Wall photo with 4 niches (optional)", "info": "Without a photo, a simple wall is drawn automatically." },
+    { "type": "text", "id": "hint_hover", "label": "Hint (mouse)", "default": "Hover a niche to turn on its light" },
+    { "type": "text", "id": "hint_touch", "label": "Hint (touch)", "default": "Swipe to explore" },
     { "type": "text", "id": "wall_alt", "label": "Wall photo description", "default": "A concrete wall with four lit niches, each holding a bag of coffee" }
   ],
   "blocks": [

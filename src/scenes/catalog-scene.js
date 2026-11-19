@@ -1,74 +1,93 @@
 /**
  * catalog-scene.js
- * Wall of niches. On scroll the lights turn on one niche at a time and the
- * product text appears under each. Mobile: the wall pans to one niche at a time.
- * Text and links live in the Liquid HTML; this file only moves things.
+ * Wall of niches. The light of a niche turns on when the pointer is over it
+ * (mouse) or when it is centred in the swipeable strip (touch).
+ * Text and links live in the Liquid HTML; this file only toggles classes.
  */
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-gsap.registerPlugin(ScrollTrigger);
-
-// Horizontal centre of each niche in the wall photo (% of its width)
-const CX = [10.2, 36.8, 63.2, 89.8];
 
 export function init(section, state, effective) {
   if (!section || effective === 'off') return null;
-  if (effective !== 'full') return () => {};
 
-  const wall  = section.querySelector('.catalog__wall');
-  const head  = section.querySelector('.catalog__head');
-  const lits  = [...section.querySelectorAll('.catalog__art--lit')];
-  const items = [...section.querySelectorAll('.catalog__item')];
-  if (!wall || !lits.length) return () => {};
+  const wrap     = section.querySelector('.catalog__wrap');
+  const scroller = section.querySelector('.catalog__scroller');
+  const lits     = [...section.querySelectorAll('.catalog__art--lit')];
+  const items    = [...section.querySelectorAll('.catalog__item')];
+  if (!wrap || !lits.length) return () => {};
 
-  const mm = gsap.matchMedia();
-  mm.add({ desktop: '(min-width: 900px)', mobile: '(max-width: 899px)' }, (ctx) => {
-    const { mobile } = ctx.conditions;
-    const tl = gsap.timeline({ defaults: { ease: 'none' } });
+  // Horizontal centre of each niche in the wall photo (% of its width)
+  const CX = [10.2, 36.8, 63.2, 89.8];
+  const REACH = 13.2; // half the niche pitch
 
-    gsap.set(items, { opacity: 0, y: 14 });
-    gsap.set(head, { opacity: 0, y: 16 });
-    gsap.set(lits, { opacity: 0 });
+  let active = -1;
+  const setActive = (i) => {
+    if (i === active) return;
+    active = i;
+    lits.forEach((el, j) => el.classList.toggle('is-lit', j === i));
+    items.forEach((el, j) => el.classList.toggle('is-lit', j === i));
+  };
 
-    const panX = (i) => () => window.innerWidth / 2 - (CX[i] / 100) * wall.offsetWidth;
-    if (mobile) gsap.set(wall, { x: panX(0) });
+  const hoverMq = window.matchMedia('(hover: hover) and (min-width: 900px)');
+  let cleanup = [];
 
-    tl.to(head, { opacity: 1, y: 0, duration: 0.06, ease: 'power2.out' }, 0);
-
-    lits.forEach((lit, i) => {
-      const t = 0.08 + i * 0.22;
-      const item = items[i];
-      if (mobile && i > 0) {
-        if (items[i - 1]) tl.to(items[i - 1], { opacity: 0, y: -10, duration: 0.04, ease: 'power1.in' }, t - 0.03);
-        tl.to(wall, { x: panX(i), duration: 0.08, ease: 'power2.inOut' }, t - 0.02);
-      }
-      // the light flickers on
-      tl.to(lit, {
-        keyframes: [
-          { opacity: 0.7, duration: 0.025 },
-          { opacity: 0.2, duration: 0.015 },
-          { opacity: 1, duration: 0.045 },
-        ],
-      }, t + 0.06);
-      if (item) tl.to(item, { opacity: 1, y: 0, duration: 0.06, ease: 'power2.out' }, t + 0.1);
+  function hoverMode() {
+    const onMove = (e) => {
+      if (e.pointerType === 'touch') return;
+      const r = wrap.getBoundingClientRect();
+      const fx = ((e.clientX - r.left) / r.width) * 100;
+      let best = -1, bestD = REACH;
+      CX.forEach((cx, i) => { const d = Math.abs(fx - cx); if (i < lits.length && d < bestD) { best = i; bestD = d; } });
+      setActive(best);
+    };
+    const onLeave = () => setActive(-1);
+    const onFocusIn = (e) => { const li = e.target.closest('.catalog__item'); if (li) setActive(items.indexOf(li)); };
+    const onFocusOut = () => setActive(-1);
+    wrap.addEventListener('pointermove', onMove);
+    wrap.addEventListener('pointerleave', onLeave);
+    section.addEventListener('focusin', onFocusIn);
+    section.addEventListener('focusout', onFocusOut);
+    cleanup.push(() => {
+      wrap.removeEventListener('pointermove', onMove);
+      wrap.removeEventListener('pointerleave', onLeave);
+      section.removeEventListener('focusin', onFocusIn);
+      section.removeEventListener('focusout', onFocusOut);
     });
-    tl.to({}, { duration: 0.001 }, 1);
+  }
 
-    const st = ScrollTrigger.create({
-      trigger: section,
-      start: 'top top',
-      end: '+=320%',
-      pin: true,
-      scrub: 1.2,
-      animation: tl,
-      anticipatePin: 1,
-      invalidateOnRefresh: true,
-      onUpdate(self) { state.progress['catalog'] = self.progress; },
-    });
+  function scrollMode() {
+    const nearest = () => {
+      const sr = scroller.getBoundingClientRect();
+      const mid = sr.left + sr.width / 2;
+      let best = 0, bestD = Infinity;
+      items.forEach((el, i) => {
+        const r = el.getBoundingClientRect();
+        const d = Math.abs(r.left + r.width / 2 - mid);
+        if (d < bestD) { best = i; bestD = d; }
+      });
+      return best;
+    };
+    // start with the first niche centred and lit
+    if (items[0]) {
+      const sr = scroller.getBoundingClientRect(), r = items[0].getBoundingClientRect();
+      scroller.scrollLeft += (r.left + r.width / 2) - (sr.left + sr.width / 2);
+    }
+    setActive(nearest());
+    let raf = 0;
+    const onScroll = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => setActive(nearest())); };
+    scroller.addEventListener('scroll', onScroll, { passive: true });
+    cleanup.push(() => { cancelAnimationFrame(raf); scroller.removeEventListener('scroll', onScroll); });
+  }
 
-    return () => { st.kill(); tl.kill(); };
-  });
+  function setup() {
+    cleanup.forEach((fn) => fn());
+    cleanup = [];
+    active = -2; setActive(-1);
+    if (hoverMq.matches) hoverMode(); else scrollMode();
+  }
+  setup();
+  hoverMq.addEventListener('change', setup);
 
-  return function destroy() { mm.revert(); };
+  return function destroy() {
+    hoverMq.removeEventListener('change', setup);
+    cleanup.forEach((fn) => fn());
+  };
 }
