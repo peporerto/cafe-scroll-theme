@@ -316,13 +316,13 @@ html[data-depth="off"] .hero__vignette { display: none !important; }
 :root { --bean-size: clamp(280px, 62vh, 620px); --color-studio: #ECEAE4; }
 .hero__zoom { position: absolute; inset: 0; z-index: 2; }
 .hero__zoom .hero__layer { z-index: auto; }
-.hero__layer--open { z-index: 1; }
+.hero__layer--open { z-index: 3; }
 .hero__wash { position: absolute; inset: 0; z-index: 4; background: var(--color-studio); pointer-events: none; }
 html.js-motion[data-motion-effective="full"] .hero__wash { opacity: 0; }
 html:not(.js-motion) .hero__wash, html[data-motion-effective="off"] .hero__wash, html[data-motion-effective="reduced"] .hero__wash { display: none; }
 html.js-motion[data-motion-effective="full"] .hero__layer--open { opacity: 0; }
 html:not(.js-motion) .hero__layer--open, html[data-motion-effective="off"] .hero__layer--open, html[data-motion-effective="reduced"] .hero__layer--open { display: none; }
-.hero__layer--open .hero__img { object-position: var(--focus-x, 50%) var(--focus-y, 50%); }
+.hero__layer--open .hero__img { object-position: 50% 50%; } /* JS recentres it on the bag opening */
 /* shared box: the jumping bean (hero) and the spinning bean (next section) have identical geometry */
 .bean-box { position: relative; width: var(--bean-size); height: var(--bean-size); }
 .bean-box img, .bean-box canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
@@ -355,8 +355,7 @@ html.js-motion[data-motion-effective="full"] .anat__card[data-slot="2"] { left: 
 html.js-motion[data-motion-effective="full"] .anat__card[data-slot="3"] { right: 5vw; bottom: 16%; }
 html.js-motion[data-motion-effective="full"] .hero__cutout { opacity: 0; }
 /* the jumping bean hands over to the spin canvas (same first frame, so nothing visibly changes) */
-html.js-motion[data-motion-effective="full"] .hero__cutout.is-canvas .hero__cutout-img { opacity: 0; }
-html.js-motion[data-motion-effective="full"] .hero__cutout.is-canvas .anat__canvas { opacity: 1; }
+html.js-motion[data-motion-effective="full"] .hero__cutout.is-canvas .hero__cutout-img { visibility: hidden; } /* visibility, not opacity: GSAP never touches it */
 
 /* No motion / reduced motion / no JS: a plain block under the hero */
 html:not(.js-motion) .hero__anat, html[data-motion-effective="off"] .hero__anat, html[data-motion-effective="reduced"] .hero__anat { position: relative; z-index: 6; background: var(--color-studio, #ECEAE4); padding: 6rem 1rem 3rem; }

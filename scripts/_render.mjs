@@ -14,7 +14,7 @@ const D='preview-images'; const has=f=>fs.existsSync(path.join(D,f)) ? '/'+D+'/'
 const pick=(o)=>Object.fromEntries(Object.entries(o).filter(([,v])=>v));
 const imgs = {
   'featured-catalog': pick({ image_wall: has('catalog-wall.jpg') }),
-  hero: pick({ image_far: has('hero-far.jpg'), image_open: has('hero-open.jpg'), image_inside: has('hero-inside.jpg') }),
+  hero: pick({ image_far: has('hero-far.jpg'), image_open: has('hero-open.jpg') }),
 };
 function defaults(arr){const o={};for(const s of arr||[]) if(s.id) o[s.id]=s.default; return o;}
 async function renderSection(name,id){

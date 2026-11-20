@@ -46,8 +46,54 @@ export function init(section, state, effective) {
     return () => {};
   }
 
-  // ── Where the bag opening is in the "open bag" photo (fraction of the frame) ──
-  const OPEN_AT = { x: 0.336, y: 0.39 };
+  const ridges = section.querySelectorAll('.hero__ridge');
+  const W = () => window.innerWidth;
+  const H = () => window.innerHeight;
+
+  // ── Where things are in the two photos (fractions of each image) ──────────
+  // FAR  = closed bag in the plantation. OPEN = close-up of the open bag with beans.
+  // The closed-bag photo zooms so its bag lands exactly on the bag of the open photo,
+  // then the open photo dissolves in on top: same silhouette, so the cross-fade does not "jump".
+  const FAR  = { top: { x: 0.339, y: 0.352 }, bagW: 0.1345, ratio: 1376 / 768 };
+  const OPEN = { top: { x: 0.447, y: 0.314 }, bagW: 0.34,   mouth: { x: 0.449, y: 0.478 }, ratio: 1672 / 941 };
+  const farImg  = layerFar?.querySelector('img.hero__img');
+  const openImg = layerOpen?.querySelector('img');
+  const clamp01 = (v) => Math.max(0, Math.min(1, v));
+
+  // object-fit: cover maths for an image of aspect `ratio` in the viewport, with object-position fx/fy
+  function coverMap(ratio, fx, fy) {
+    const w = W(), h = H();
+    const dw = Math.max(w, h * ratio), dh = dw / ratio;
+    const ox = (w - dw) * fx, oy = (h - dh) * fy;
+    return { dw, dh, pt: (p) => ({ x: ox + p.x * dw, y: oy + p.y * dh }) };
+  }
+  // object-position that puts a point of the open photo in the middle of the screen when it can
+  function openFocus() {
+    const w = W(), h = H();
+    const dw = Math.max(w, h * OPEN.ratio), dh = dw / OPEN.ratio;
+    const fx = dw > w ? clamp01((OPEN.mouth.x * dw - w / 2) / (dw - w)) : 0.5;
+    const fy = dh > h ? clamp01((OPEN.mouth.y * dh - h / 2) / (dh - h)) : 0.5;
+    return { fx, fy };
+  }
+  function geo() {
+    const fo = openFocus();
+    const open = coverMap(OPEN.ratio, fo.fx, fo.fy);
+    const mouth = open.pt(OPEN.mouth);
+    if (!farImg) {
+      // placeholder scenery (no photo): simple push toward a point
+      return { S: 1.8, tx: -0.2 * W(), ty: -0.1 * H(), mouth: { x: 0.5 * W(), y: 0.45 * H() } };
+    }
+    const far = coverMap(FAR.ratio, focusX / 100, focusY / 100);
+    const pf = far.pt(FAR.top), po = open.pt(OPEN.top);
+    const S = (OPEN.bagW * open.dw) / (FAR.bagW * far.dw);
+    return { S, tx: po.x - S * pf.x, ty: po.y - S * pf.y, mouth };
+  }
+  function applyOpenFocus() {
+    if (!openImg) return;
+    const f = openFocus();
+    openImg.style.objectPosition = `${f.fx * 100}% ${f.fy * 100}%`;
+  }
+  applyOpenFocus();
 
   // Anchor of each callout on the cross-section, as offsets from the bean centre (fractions of its size)
   const ANCHORS = [
@@ -57,9 +103,6 @@ export function init(section, state, effective) {
     { x: 0.257,  y: 0.283 },  // slot 3: glossy outer shell
   ];
 
-  const ridges = section.querySelectorAll('.hero__ridge');
-  const W = () => window.innerWidth;
-  const H = () => window.innerHeight;
 
   // anatomy parts
   const anat    = section.querySelector('.hero__anat');
@@ -68,7 +111,6 @@ export function init(section, state, effective) {
   const cards   = anat ? [...anat.querySelectorAll('.anat__card')] : [];
   const canvas  = cutoutBox?.querySelector('.anat__canvas');
   const cut     = cutoutBox?.querySelector('.anat__cut');
-  const cutImg  = cutoutBox?.querySelector('.hero__cutout-img');
 
   // ── Spin frame sequence (starts loading once the user scrolls, drawn on the bean's own canvas) ──
   const count = parseInt(cutoutBox?.dataset.spinCount || '72', 10);
@@ -169,33 +211,36 @@ export function init(section, state, effective) {
 
     if (head) gsap.set(head, { opacity: 0, y: 16 });
     if (cards.length) gsap.set(cards, { opacity: 0, y: 18 });
-    if (cut) gsap.set(cut, { opacity: 0, scale: 0.9, rotation: -4 });
+    if (cut) gsap.set(cut, { opacity: 0 });
     if (canvas) gsap.set(canvas, { opacity: 1 });
     if (desktop && svg) { buildLines(); } else if (svg) { svg.innerHTML = ''; lines.length = 0; }
 
     // 0–6%: text leaves
     if (content) tl.to(content, { opacity: 0, yPercent: -14, duration: 0.06 }, 0);
 
-    // 1.5–5.5%: the bag opens (closed photo cross-fades to the open one)
-    if (hasOpen) tl.fromTo(layerOpen, { opacity: 0 }, { opacity: 1, duration: 0.04, ease: 'power1.inOut' }, 0.015);
-
-    // 4–19%: camera pushes into the opening
+    // 4–18%: the closed-bag photo pushes in until its bag sits exactly where the open bag is
     if (zoom) {
-      gsap.set(zoom, { transformOrigin: `${OPEN_AT.x * 100}% ${OPEN_AT.y * 100}%` });
-      tl.to(zoom, { scale: 1.8, duration: 0.15, ease: 'power2.inOut' }, 0.04);
+      gsap.set(zoom, { transformOrigin: '0 0' });
+      tl.fromTo(zoom, { x: 0, y: 0, scale: 1 },
+        { x: () => geo().tx, y: () => geo().ty, scale: () => geo().S, duration: 0.14, ease: 'power2.inOut' }, 0.04);
       ridges.forEach((r) => {
         const d = parseFloat(r.dataset.depth || '0.5');
-        tl.to(r, { scale: 1 + d * 0.5, yPercent: d * 10, duration: 0.15 }, 0.04);
+        tl.to(r, { scale: 1 + d * 0.5, yPercent: d * 10, duration: 0.14 }, 0.04);
       });
     }
 
-    // 19–34%: a bean jumps out of the bag, arcs toward the camera and lands in the middle
+    // 12–19%: the bag opens: the open-bag photo dissolves in over the zoom and settles (no jump, same silhouette)
+    if (hasOpen) {
+      tl.fromTo(layerOpen, { opacity: 0, scale: 1.05 }, { opacity: 1, scale: 1, duration: 0.07, ease: 'power1.inOut' }, 0.12);
+    }
+
+    // 19–34%: a bean jumps out of the open bag, arcs toward the camera and lands in the middle
     if (cutoutBox) {
-      const startX = () => (OPEN_AT.x - 0.5) * W();
-      const startY = () => (OPEN_AT.y - 0.5) * H();
+      const startX = () => geo().mouth.x - W() / 2;
+      const startY = () => geo().mouth.y - H() / 2;
       gsap.set(cutoutBox, { opacity: 0 });
       tl.fromTo(cutoutBox, { opacity: 0 }, { opacity: 1, duration: 0.02, ease: 'none' }, 0.19);
-      tl.fromTo(cutoutBox, { x: startX, scale: 0.16, rotation: -50 },
+      tl.fromTo(cutoutBox, { x: startX, scale: 0.12, rotation: -50 },
         { x: 0, scale: 1, rotation: 0, duration: 0.13, ease: 'power2.out' }, 0.19);
       tl.fromTo(cutoutBox, { y: startY }, { y: () => -0.26 * H(), duration: 0.065, ease: 'power2.out' }, 0.19);
       tl.to(cutoutBox, { y: 0, duration: 0.065, ease: 'power2.in' }, 0.255);
@@ -216,11 +261,11 @@ export function init(section, state, effective) {
       tl.to(spin, { f: count - 0.01, duration: 0.2, ease: 'power1.inOut', onUpdate: () => showFrame(spin.f) }, 0.37);
     }
 
-    // 59–65%: the bean splits open (spin canvas cross-fades to the cut-open bean)
+    // 58–64%: the bean splits open. Strictly one after the other (never both on screen at once):
+    // the whole bean leaves first, then the cut-open bean arrives in the same place
     if (canvas && cut) {
-      tl.to(canvas, { opacity: 0, duration: 0.05, ease: 'power1.inOut' }, 0.59);
-      tl.to(cut, { opacity: 1, scale: 1, rotation: 0, duration: 0.06, ease: 'power2.out' }, 0.59);
-      if (cutImg) tl.set(cutImg, { opacity: 0 }, 0.59);
+      tl.to(canvas, { opacity: 0, scale: 1.05, duration: 0.018, ease: 'power1.in' }, 0.58);
+      tl.fromTo(cut, { opacity: 0, scale: 0.94, rotation: -3 }, { opacity: 1, scale: 1, rotation: 0, duration: 0.04, ease: 'power2.out' }, 0.598);
     }
 
     // 66–100%: callouts appear one by one
@@ -254,7 +299,7 @@ export function init(section, state, effective) {
       animation: tl,
       anticipatePin: 1,
       invalidateOnRefresh: true,
-      onRefresh: () => { sizeCanvas(); layoutLines(); },
+      onRefresh: () => { applyOpenFocus(); sizeCanvas(); layoutLines(); },
       onUpdate(self) {
         state.progress['hero'] = self.progress;
         if (self.progress > 0.02) loadFrames();

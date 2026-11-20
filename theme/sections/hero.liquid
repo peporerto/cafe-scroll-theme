@@ -8,7 +8,7 @@
   style="--focus-x: {{ section.settings.focus_x | default: 34 }}%; --focus-y: {{ section.settings.focus_y | default: 58 }}%;"
 >
   <div class="hero__pin-wrap">
-    {%- comment -%} Layers: zoom group = closed bag + open bag (cross-fade = the bag opens) {%- endcomment -%}
+    {%- comment -%} Layer 1: the closed bag in the plantation (zooms toward the bag, then dissolves into the open-bag photo) {%- endcomment -%}
     <div class="hero__zoom">
       <div class="hero__layer hero__layer--far">
       {%- if section.settings.image_far != blank %}
@@ -32,19 +32,21 @@
         </div>
       {%- endif %}
       </div>
-      <div class="hero__layer hero__layer--open">
-      {%- if section.settings.image_open != blank %}
-        {{
-          section.settings.image_open
-          | image_url: width: 2400
-          | image_tag:
-            class: 'hero__img hero__img--open',
-            loading: 'lazy',
-            widths: '600,900,1200,1800,2400',
-            sizes: '100vw'
-        }}
-      {%- endif %}
-      </div>
+    </div>
+
+    {%- comment -%} The bag opens: its own photo (close-up of the open bag), cross-faded in while the closed-bag photo zooms into it. The bean jumps out of this one. {%- endcomment -%}
+    <div class="hero__layer hero__layer--open">
+    {%- if section.settings.image_open != blank %}
+      {{
+        section.settings.image_open
+        | image_url: width: 2400
+        | image_tag:
+          class: 'hero__img hero__img--open',
+          loading: 'eager',
+          widths: '600,900,1200,1800,2400',
+          sizes: '100vw'
+      }}
+    {%- endif %}
     </div>
 
     <div class="hero__wash" aria-hidden="true"></div>
@@ -103,7 +105,7 @@
     { "type": "text", "id": "heading_line_2", "label": "Heading line 2", "default": "to your cup" },
     { "type": "textarea", "id": "subtext", "label": "Subtext", "default": "Single-origin specialty coffee, roasted to order." },
     { "type": "image_picker", "id": "image_far", "label": "Image 1: closed bag in the plantation" },
-    { "type": "image_picker", "id": "image_open", "label": "Image 2: same scene, bag open (the bean jumps out of it)" },
+    { "type": "image_picker", "id": "image_open", "label": "Image 2: close-up of the open bag with beans (the bean jumps out of it)" },
     { "type": "range", "id": "focus_x", "label": "Focus X %", "min": 0, "max": 100, "step": 1, "default": 34 },
     { "type": "range", "id": "focus_y", "label": "Focus Y %", "min": 0, "max": 100, "step": 1, "default": 58 },
     { "type": "header", "content": "Bean anatomy (same scene, right after the bean jumps out)" },
