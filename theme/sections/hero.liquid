@@ -47,27 +47,14 @@
       </div>
     </div>
 
-    {%- comment -%} Layer 3: looking inside the open bag {%- endcomment -%}
-    <div class="hero__layer hero__layer--inside">
-      {%- if section.settings.image_inside != blank %}
-        {{
-          section.settings.image_inside
-          | image_url: width: 2400
-          | image_tag:
-            class: 'hero__img hero__img--inside',
-            loading: 'lazy',
-            widths: '600,900,1200,1800,2400',
-            sizes: '100vw'
-        }}
-      {%- endif %}
-    </div>
-
     <div class="hero__wash" aria-hidden="true"></div>
 
-    {%- comment -%} The bean that jumps out: first frame of the spin sequence, so the hand-off to the next section is seamless {%- endcomment -%}
-    <div class="hero__cutout bean-box" aria-hidden="true">
+    {%- comment -%} The one bean of the whole scene: it jumps out of the bag, then the same element spins (frame sequence on the canvas) and splits open (cross-section). Full-motion only. {%- endcomment -%}
+    <div class="hero__cutout bean-box" aria-hidden="true" data-spin-url="{{ 'bean-spin-000.webp' | asset_url }}" data-spin-count="72">
       <div class="bean-box__shadow"></div>
       <img class="hero__cutout-img" src="{{ 'bean-spin-000.webp' | asset_url }}" alt="" width="560" height="560" loading="lazy">
+      <canvas class="anat__canvas" aria-hidden="true"></canvas>
+      <img class="anat__cut" src="{{ 'bean-cut.webp' | asset_url }}" alt="" width="616" height="561" loading="lazy">
     </div>
 
     {%- comment -%} Text overlay {%- endcomment -%}
@@ -85,6 +72,27 @@
 
   {%- comment -%} CSS depth vignette {%- endcomment -%}
   <div class="hero__vignette" aria-hidden="true"></div>
+
+  {%- comment -%} Anatomy of the bean: part of the same scene (heading, lines and callouts over the bean). Without motion it is a normal block under the hero. {%- endcomment -%}
+  <div class="hero__anat anat">
+    <header class="anat__head">
+      <p class="anat__eyebrow">{{ section.settings.anat_eyebrow }}</p>
+      <h2 class="anat__title">{{ section.settings.anat_heading }}</h2>
+    </header>
+
+    <img class="anat__static-bean" src="{{ 'bean-spin-000.webp' | asset_url }}" alt="{{ section.settings.bean_alt }}" width="560" height="560" loading="lazy">
+
+    <svg class="anat__lines" aria-hidden="true"></svg>
+
+    <ol class="anat__cards">
+      {%- for block in section.blocks %}
+        <li class="anat__card" data-slot="{{ forloop.index0 | modulo: 4 }}" {{ block.shopify_attributes }}>
+          <h3 class="anat__card-title">{{ block.settings.title }}</h3>
+          <p class="anat__card-text">{{ block.settings.text }}</p>
+        </li>
+      {%- endfor %}
+    </ol>
+  </div>
 </section>
 
 {% schema %}
@@ -95,11 +103,33 @@
     { "type": "text", "id": "heading_line_2", "label": "Heading line 2", "default": "to your cup" },
     { "type": "textarea", "id": "subtext", "label": "Subtext", "default": "Single-origin specialty coffee, roasted to order." },
     { "type": "image_picker", "id": "image_far", "label": "Image 1: closed bag in the plantation" },
-    { "type": "image_picker", "id": "image_open", "label": "Image 2: same scene, bag open (optional)" },
-    { "type": "image_picker", "id": "image_inside", "label": "Image 3: looking inside the open bag (optional)" },
+    { "type": "image_picker", "id": "image_open", "label": "Image 2: same scene, bag open (the bean jumps out of it)" },
     { "type": "range", "id": "focus_x", "label": "Focus X %", "min": 0, "max": 100, "step": 1, "default": 34 },
-    { "type": "range", "id": "focus_y", "label": "Focus Y %", "min": 0, "max": 100, "step": 1, "default": 58 }
+    { "type": "range", "id": "focus_y", "label": "Focus Y %", "min": 0, "max": 100, "step": 1, "default": 58 },
+    { "type": "header", "content": "Bean anatomy (same scene, right after the bean jumps out)" },
+    { "type": "text", "id": "anat_eyebrow", "label": "Small label", "default": "Our bean" },
+    { "type": "text", "id": "anat_heading", "label": "Heading", "default": "Anatomy of a bean" },
+    { "type": "text", "id": "bean_alt", "label": "Bean image description", "default": "Roasted coffee bean" }
   ],
-  "presets": [{ "name": "Hero" }]
+  "blocks": [
+    {
+      "type": "card",
+      "name": "Anatomy callout",
+      "limit": 4,
+      "settings": [
+        { "type": "text", "id": "title", "label": "Title", "default": "Center crease" },
+        { "type": "textarea", "id": "text", "label": "Description", "default": "The seam that splits during roasting, releasing CO₂ and volatile aromatics." }
+      ]
+    }
+  ],
+  "presets": [{
+    "name": "Hero",
+    "blocks": [
+      { "type": "card", "settings": { "title": "Silver skin", "text": "The thin chaff layer that detaches during roasting." }},
+      { "type": "card", "settings": { "title": "Center crease", "text": "The seam that splits during first crack, releasing CO₂ and volatiles." }},
+      { "type": "card", "settings": { "title": "Cell structure", "text": "Thousands of cells expand with heat, trapping oils and flavor compounds." }},
+      { "type": "card", "settings": { "title": "Surface oils", "text": "Lipids migrate outward in dark roasts, creating the characteristic sheen." }}
+    ]
+  }]
 }
 {% endschema %}

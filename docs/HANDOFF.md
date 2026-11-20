@@ -41,7 +41,7 @@ Actualizado: 2026-11-19. Para abrir una conversación nueva sin perder contexto.
 |---|---|---|
 | Hero | Bien | Bolsa cerrada, se abre, interior con granos, un grano salta y aterriza en fondo claro. Etapa "macro" eliminada por fea. Pin de 380% |
 | Historia | Funciona | La menos trabajada visualmente |
-| Anatomía | Bien | Grano gira (72 cuadros WebP por scroll), se abre en corte, 4 datos aparecen uno a uno con líneas; móvil una tarjeta a la vez |
+| Anatomía | Bien (fusionada en el hero, 2026-11-19) | Ya no es sección aparte: es la misma escena pineada del hero. Bolsa cerrada → bolsa abierta con zoom → el grano salta → el fondo se aclara → ese mismo grano gira (72 cuadros WebP), se abre en corte y salen 4 datos uno a uno con líneas; móvil una tarjeta a la vez. Se quitó la foto 3 (interior de la bolsa). Todo en `hero.liquid`, `hero-scene.js` y `base.css` |
 | Simulador de tueste | **Débil** | Usa grano 3D procedural que a tamaño grande se ve grumoso; no combina con las fotos reales |
 | Catálogo | Bien | Pared con 4 nichos; la luz se enciende con hover (escritorio) o al deslizar (móvil); sin foto dibuja una pared CSS |
 | Header / footer | Mínimos | Solo marca y menú; el footer está desactivado en la home; no hay carrito |
