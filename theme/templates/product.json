@@ -1,0 +1,94 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-product",
+      "blocks": {
+        "title": {
+          "type": "title",
+          "settings": {
+            "show_eyebrow": true
+          }
+        },
+        "price": {
+          "type": "price",
+          "settings": {}
+        },
+        "notes": {
+          "type": "tasting_notes",
+          "settings": {
+            "heading": "Tasting notes",
+            "notes": "Jasmine, bergamot, raspberry"
+          }
+        },
+        "roast": {
+          "type": "roast_scale",
+          "settings": {
+            "level": 2
+          }
+        },
+        "variants": {
+          "type": "variant_picker",
+          "settings": {}
+        },
+        "plans": {
+          "type": "selling_plan",
+          "settings": {}
+        },
+        "buy": {
+          "type": "buy_buttons",
+          "settings": {
+            "show_quantity": true,
+            "show_dynamic_checkout": true
+          }
+        },
+        "trust": {
+          "type": "trust_row",
+          "settings": {
+            "text_1": "Roasted to order",
+            "text_2": "Ships in 48 hours",
+            "text_3": "Free shipping over $50"
+          }
+        },
+        "desc": {
+          "type": "description",
+          "settings": {}
+        },
+        "brew": {
+          "type": "accordion",
+          "settings": {
+            "heading": "Brew guide",
+            "content": "<p>Pour-over: 15 g of coffee to 250 ml of water at 94 \u00b0C, medium-fine grind, 2:45 total time.</p><p>Espresso: 18 g in, 36 g out in 28 seconds.</p>",
+            "open": false
+          }
+        },
+        "ship": {
+          "type": "accordion",
+          "settings": {
+            "heading": "Roasting and shipping",
+            "content": "<p>We roast every Monday and Thursday and ship within 48 hours. The roast date is printed on every bag.</p>",
+            "open": false
+          }
+        }
+      },
+      "block_order": [
+        "title",
+        "price",
+        "notes",
+        "roast",
+        "variants",
+        "plans",
+        "buy",
+        "trust",
+        "desc",
+        "brew",
+        "ship"
+      ],
+      "settings": {
+        "blend_images": true
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

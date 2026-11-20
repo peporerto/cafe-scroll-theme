@@ -9,11 +9,11 @@ const watch = process.argv.includes('--watch');
 
 // Limpia trozos viejos para que no se acumulen entre builds.
 for (const f of readdirSync(out)) {
-  if (/^chunk-.*\.js$/.test(f) || f === 'main.js') rmSync(join(out, f));
+  if (/^chunk-.*\.js$/.test(f) || f === 'main.js' || f === 'product.js') rmSync(join(out, f));
 }
 
 const options = {
-  entryPoints: { main: 'src/main.js' },
+  entryPoints: { main: 'src/main.js', product: 'src/product.js' },
   outdir: out,
   bundle: true,
   splitting: true,

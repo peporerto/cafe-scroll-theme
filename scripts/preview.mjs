@@ -4,7 +4,7 @@ import { render } from './_render.mjs';
 const mime = { '.js':'text/javascript', '.css':'text/css', '.png':'image/png', '.jpg':'image/jpeg', '.webp':'image/webp', '.svg':'image/svg+xml' };
 http.createServer(async (q, r) => {
   const p = q.url.split('?')[0];
-  if (p === '/') { try { const h = await render(); r.writeHead(200, {'Content-Type':'text/html; charset=utf-8'}); return r.end(h); } catch (e) { r.writeHead(500); return r.end(String(e)); } }
+  if (p === '/' || p.startsWith('/products/')) { try { const u = new URL(q.url, 'http://x'); const h = p === '/' ? await render('index') : await render('product', { variant: u.searchParams.get('variant') }); r.writeHead(200, {'Content-Type':'text/html; charset=utf-8'}); return r.end(h); } catch (e) { r.writeHead(500); return r.end(String(e)); } }
   const clean = p.replace(/\.\./g, ''); const f = clean.startsWith('/preview-images/') ? clean.slice(1) : path.join('theme', clean);
   fs.readFile(f, (e, d) => { if (e) { r.writeHead(404); return r.end('nf'); } r.writeHead(200, {'Content-Type': mime[path.extname(f)] || 'application/octet-stream'}); r.end(d); });
-}).listen(3000, () => console.log('Abre http://localhost:3000  (recarga el navegador tras npm run build)'));
+}).listen(3000, () => console.log('Abre http://localhost:3000 (home) o http://localhost:3000/products/ethiopia-yirgacheffe (producto de prueba) (recarga el navegador tras npm run build)'));

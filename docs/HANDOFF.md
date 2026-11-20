@@ -46,7 +46,7 @@ Actualizado: 2026-11-19. Para abrir una conversación nueva sin perder contexto.
 | Catálogo | Bien | Pared con 4 nichos; la luz se enciende con hover (escritorio) o al deslizar (móvil); sin foto dibuja una pared CSS |
 | Header / footer | Mínimos | Solo marca y menú; el footer está desactivado en la home; no hay carrito |
 
-Páginas existentes: SOLO `templates/index.json`. Es una landing de alto impacto, no una tienda.
+Páginas existentes: `templates/index.json` (landing de impacto) y `templates/product.json` (página de producto, 2026-11-20). Faltan cart, collection, list-collections, page, blog, article, search, 404, password, gift_card.
 
 ### Peso medido (build actual)
 
@@ -61,7 +61,7 @@ Páginas existentes: SOLO `templates/index.json`. Es una landing de alto impacto
 
 Referencia: requisitos del Shopify Theme Store (https://shopify.dev/docs/storefronts/themes/store/requirements). No vamos a enviarlo al Theme Store, pero es la vara de un tema "de pago serio".
 
-### A. Plantillas obligatorias que faltan (hoy solo existe `index.json`)
+### A. Plantillas obligatorias que faltan (hoy existen `index.json` y `product.json`)
 
 `product.json` (la más crítica: precio, variantes tamaño/molienda/tueste, agregar al carrito, galería), `cart.json`, `collection.json`, `list-collections.json`, `page.json`, `page.contact.json`, `blog.json`, `article.json`, `search.json`, `404.json`, `password.json`, `gift_card.liquid`, `settings_data.json`. Todas con soporte de secciones. Sección "Custom Liquid". Header y footer como section groups.
 
@@ -204,3 +204,15 @@ Documento: `Template_de__300_USD.html` (lo pasó Santiago). Muse asumió una pá
 - Una tienda de desarrollo de Shopify Partners tiene contraseña y no se le puede quitar: no sirve de demo público para compradores.
 - Opción: demo estático generado con `scripts/_render.mjs` (el renderizador de Liquid ya existente) y alojado en S3 + CloudFront o Vercel. Aquí S3 sí tiene sentido (no para el tema, sino para el demo). Falta construirlo y ocultar las imágenes sin licencia en la versión pública, o usar fotos propias.
 
+
+
+## 10. Página de producto (hecha 2026-11-20)
+
+- Archivos: `theme/templates/product.json`, `theme/sections/main-product.liquid`, `theme/assets/product.css`, `src/product.js` (entrada propia, sale como `theme/assets/product.js`, funciona aunque el movimiento esté apagado), `theme/snippets/meta-tags.liquid` (Open Graph, ahora en el layout).
+- Bloques del editor: título, precio, notas de cata, escala de tueste (1 a 5), selector de variantes, suscripción (selling plans), botones de compra (cantidad y pago acelerado), fila de confianza, descripción y filas plegables (hasta 6).
+- Sin JS funciona igual: un select manda el id de variante y el formulario va a /cart/add. Con JS: píldoras por opción, agotados tachados, precio/URL/botón al cambiar, la foto de la variante se desplaza a la vista, barra de compra fija en móvil.
+- Galería: una columna editorial (2 por fila en escritorio, tira deslizable en móvil). `mix-blend-mode: multiply` mezcla fotos con fondo blanco sobre el panel de estudio (ajuste "Blend photo backgrounds").
+- Datos estructurados: Product con `structured_data` (oficial de Shopify) y BreadcrumbList.
+- Notas de cata: el campo del bloque se puede conectar a un metafield como fuente dinámica para que cambie por producto (sin conectar, todos los productos muestran el mismo texto).
+- Vista previa local: `npm run preview` y abre `/products/ethiopia-yirgacheffe` (producto de prueba con 6 variantes, una agotada, y 2 planes de suscripción). Theme Check limpio.
+- Pendiente de esta página: el botón agrega por formulario normal (recarga a /cart); cuando exista el carrito deslizable se cambia a Ajax. Falta sección de productos recomendados y de reseñas.

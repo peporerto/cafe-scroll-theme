@@ -13,6 +13,8 @@
       <meta name="description" content="{{ page_description | escape }}">
     {%- endif %}
 
+    {% render 'meta-tags' %}
+
     {%- comment -%}LCP hero image priority handled via fetchpriority="high" in sections/hero.liquid{%- endcomment -%}
 
     {% render 'css-variables' %}

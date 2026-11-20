@@ -2,6 +2,40 @@
   "general": {
     "skip_to_content": "Skip to content",
     "main_navigation": "Main navigation",
-    "footer_navigation": "Footer navigation"
+    "footer_navigation": "Footer navigation",
+    "home": "Home",
+    "breadcrumb": "Breadcrumb",
+    "all_products": "All products"
+  },
+  "products": {
+    "product": {
+      "sold_out": "Sold out",
+      "unavailable": "Unavailable",
+      "add_to_cart": "Add to cart",
+      "adding": "Adding…",
+      "quantity": "Quantity",
+      "quantity_decrease": "Decrease quantity",
+      "quantity_increase": "Increase quantity",
+      "variant": "Variant",
+      "one_time": "One-time purchase",
+      "subscribe": "Subscribe and save",
+      "delivery": "Delivery",
+      "save_percent": "Save {{ value }}%",
+      "save_amount": "Save {{ value }}",
+      "no_image": "No image",
+      "gallery": "Product photos",
+      "roast": "Roast",
+      "roast_light": "Light",
+      "roast_dark": "Dark",
+      "roast_levels": {
+        "light": "Light roast",
+        "medium_light": "Medium-light roast",
+        "medium": "Medium roast",
+        "medium_dark": "Medium-dark roast",
+        "dark": "Dark roast"
+      },
+      "tasting_notes": "Tasting notes",
+      "unit_price_separator": "per"
+    }
   }
 }
