@@ -137,7 +137,7 @@ Hoy todas las imágenes y el video de la demo se generaron con Gemini y Veo y **
 - Pruebas: hay que recorrer toda la página antes de medir, porque los `pin-spacer` se crean tarde. Chromium con SwiftShader: `--use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --ignore-gpu-blocklist`.
 - Los hooks de "commits sin subir" a veces fallan por la referencia local desactualizada: comparar `git ls-remote origin <rama>` con `git rev-parse HEAD`.
 
-## 7. Decisiones abiertas
+## 7. Decisiones abiertas (ver también la sección 9)
 
 1. ¿Landing de impacto o tienda completa? Recomendación: tienda completa mínima (producto, carrito, colección, footer) o no se puede defender US$300 a 400.
 2. Estrategia de precio: gancho barato en Etsy + paquete con servicio, o canal propio.
@@ -154,3 +154,53 @@ Hoy todas las imágenes y el video de la demo se generaron con Gemini y Veo y **
 4. Simulador con imágenes reales.
 5. M5: SEO/JSON-LD, robots, rendimiento, accesibilidad, Theme Check, pruebas en teléfono real y webviews.
 6. Empaque: ZIP limpio sin imágenes con licencia dudosa, guía PDF, video, demo, anuncio de Etsy.
+
+## 9. Anexo: investigación de Muse (19-nov-2026) cruzada con este proyecto
+
+Documento: `Template_de__300_USD.html` (lo pasó Santiago). Muse asumió una página Next.js + Three.js para café, que Santiago querría ampliar a panadería y barbería. **Nuestro producto es un tema Shopify en Liquid** (ya hecho, con Three.js bajo demanda). Eso cambia varias conclusiones.
+
+### Dónde coincide con mi investigación (confianza alta)
+- Una sola página de un nicho NO se vende a US$300. Un template de café, panadería o barbería cuesta US$12 a 149 en todos los mercados vistos. Espresso (Webflow) a US$149 es el techo de un solo nicho; Caffeine X US$79; Brewie (Framer) US$99; Corvo (Framer, café que vende con Shopify) US$89.
+- US$300 se paga por: paquete de varios nichos, tema Shopify completo (US$220 a 400 en el Theme Store), o sistema completo con documentos y soporte.
+- Etsy atrae compradores de Canva de US$5 a 15; los temas Shopify que vi allí cuestan US$44 a 90.
+- Theme Store: 15% de participación para Shopify sobre ventas brutas más 2,9% de procesamiento (verificado en shopify.dev).
+
+### Dónde su análisis no aplica a nuestro caso
+- "Reconstruir en Liquid sin Three.js": ya está hecho en Liquid con Three.js bajo demanda.
+- Su expectativa #1, "editar sin código", ya la cumple el editor de temas de Shopify (secciones, bloques, ajustes). No hace falta `content.json` ni CMS externo.
+- Su "Shopify es la ruta más difícil" vale para el Theme Store (aprobación, exclusividad según Muse, no verificada por mí). Vender el ZIP fuera del Theme Store no requiere aprobación: hay temas Shopify vendidos en Etsy. No verifiqué las reglas de Gumroad para temas Shopify.
+- Reservas con Calendly/Cal.com, Stripe Payment Links, mapas, WhatsApp, LocalBusiness: son de web de negocio local (café con mesas, barbería con citas). Nuestro tema es una marca de café que vende bolsas en línea; el carrito y el pago ya los trae Shopify.
+
+### Bifurcación que hay que decidir
+- **A. Marca de producto que vende en línea (lo que se construyó):** hero con la bolsa, anatomía del grano, simulador, catálogo de nichos. Encaja con tostadores, té, chocolate, velas, cosmética de un solo producto.
+- **B. Web de negocio local (café, panadería, barbería):** reservas, mapa, horario, menú, SEO local.
+- Recomendación: A. La barbería no tiene producto ni bolsa; el motor de scroll no le sirve y exigiría un diseño nuevo. Un "paquete de 3" más realista son 3 presets de marcas de producto (por ejemplo café, té, chocolate) sobre el mismo motor. Decisión de Santiago.
+
+### Qué sí tomar de Muse
+- Meta de peso: home < 2 MB (ideal 1,5), mínimo < 3 MB. Nuestro estimado es 3,5 a 4 MB: hay que bajarlo más que la meta anterior.
+- Lighthouse móvil ≥ 90 con puntajes publicados en el anuncio. Su medición: la mediana de 45 templates Three.js es 68 y solo 3 llegan a 90; el que cargaba Three.js al acercarse tuvo el mejor resultado (96), igual que nuestro diseño. Fuente secundaria (MotionLab), no verificada.
+- Three.js: pausar fuera de pantalla, densidad de píxeles máx. 1,5 a 1,75, versión estática de respaldo sin WebGL.
+- Guía escrita + video de 5 a 10 min; el comprador debe quedar en vivo en menos de 30 minutos; registro de cambios; soporte declarado (meta 6 meses de soporte y 12 de actualizaciones); licencia en niveles (1 tienda vs agencia); demo real sin Lorem Ipsum; un ZIP sin `node_modules`, claves ni errores de consola.
+- Pruebas antes de publicar: sin JavaScript, sin WebGL, PageSpeed móvil y escritorio, teléfono real a 390×844 en 4G, prueba de edición con una persona que no programe (30 min), instalación limpia siguiendo solo los documentos, teclado y lector de pantalla.
+- Los 10 errores que matan la venta: demo roto o lento, texto solo en el canvas, sin forma de editar, botón de compra que no lleva a ninguna parte, formulario que no envía, Lighthouse móvil < 60, documentos que no coinciden, sin soporte, licencia confusa, una página por US$300 cuando US$79 compra 12 a 40 páginas.
+
+### Escalera de precio y canales (propuesta de Muse, a validar)
+1. Gumroad + sitio demo propio: US$149 por nicho o US$299 el paquete de 3, sin aprobación; tú traes el tráfico. Comisión 10% + US$0,50 + 2,9% + US$0,30 en venta directa; 30% si la venta viene de Discover.
+2. Framer Marketplace: 0% de comisión, techo observado US$200; implica reconstruir en Framer (no aplica a nuestro tema Liquid).
+3. Webflow: realista US$129 a 149; reconstrucción completa.
+4. Shopify Theme Store: techo de US$150 a 500, pero aprobación dura; proyecto de 6 a 12 meses.
+5. ThemeForest: registro de autores nuevos en pausa (según Muse), comisión del 50%.
+6. Etsy: Muse no lo recomienda para código; solo como embudo con un producto barato.
+- Contradice parcialmente la idea original de vender en Etsy. Santiago decide el canal.
+
+### Lo que Muse NO verificó (no tomarlo como hecho)
+- Ranking de nichos (café > panadería > barbería): es inferencia de cantidad de anuncios, sin cifras de ventas.
+- Comisión de Webflow (95% según el acuerdo de sep 2026; blogs dicen 80%).
+- Que no existe un template de un solo nicho a US$300 en Framer o Webflow: es lo observado, no una regla.
+- La columna de US$1.500 de su tabla quedó pendiente (falta el enlace del sistema).
+- Muse no vio el código de nuestra página.
+
+### Nuevo pendiente: demo público
+- Una tienda de desarrollo de Shopify Partners tiene contraseña y no se le puede quitar: no sirve de demo público para compradores.
+- Opción: demo estático generado con `scripts/_render.mjs` (el renderizador de Liquid ya existente) y alojado en S3 + CloudFront o Vercel. Aquí S3 sí tiene sentido (no para el tema, sino para el demo). Falta construirlo y ocultar las imágenes sin licencia en la versión pública, o usar fotos propias.
+
