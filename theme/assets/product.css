@@ -33,6 +33,7 @@
 .pdp__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 6%; transition: transform .8s cubic-bezier(.2, .7, .2, 1); }
 .pdp__media:first-child .pdp__img { padding: 5%; }
 .pdp__gallery--blend .pdp__img { mix-blend-mode: multiply; }
+.pdp__gallery--cover .pdp__img, .pdp__gallery--cover .pdp__media:first-child .pdp__img { object-fit: cover; padding: 0; }
 @media (hover: hover) { .pdp__media:hover .pdp__img { transform: scale(1.04); } }
 .pdp__media--empty { display: grid; place-items: center; color: #6b645b; font-family: var(--pdp-mono); font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; }
 
@@ -83,7 +84,7 @@
 .pdp__pill:hover .pdp__pill-text { border-color: rgba(255, 255, 255, .35); }
 .pdp__pill input:checked + .pdp__pill-text { border-color: var(--color-accent); background: rgba(217, 164, 65, .12); color: var(--color-accent); }
 .pdp__pill input:focus-visible + .pdp__pill-text { outline: 2px solid var(--color-accent); outline-offset: 3px; }
-.pdp__pill.is-soldout .pdp__pill-text { color: var(--color-muted); text-decoration: line-through; border-style: dashed; }
+.pdp__pill.is-soldout input:not(:checked) + .pdp__pill-text { color: var(--color-muted); text-decoration: line-through; border-style: dashed; }
 
 /* Subscription cards */
 .pdp__plans { margin: 0; padding: 0; border: 0; min-width: 0; display: grid; gap: .5rem; }

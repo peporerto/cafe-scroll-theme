@@ -37,7 +37,7 @@
       Without JavaScript it is all plain HTML.
     {%- endcomment -%}
     <ul
-      class="pdp__gallery{% if section.settings.blend_images %} pdp__gallery--blend{% endif %}"
+      class="pdp__gallery{% if section.settings.blend_images %} pdp__gallery--blend{% endif %}{% if section.settings.image_fit == 'cover' %} pdp__gallery--cover{% endif %}"
       role="list"
       aria-label="{{ 'products.product.gallery' | t }}"
     >
@@ -197,14 +197,22 @@
                   {%- for group in product.selling_plan_groups %}
                     {%- for plan in group.selling_plans %}
                       <label class="pdp__plan">
-                        <input type="radio" name="selling_plan" value="{{ plan.id }}" form="{{ form_id }}">
+                        {%- assign adj = plan.price_adjustments.first %}
+                        <input
+                          type="radio"
+                          name="selling_plan"
+                          value="{{ plan.id }}"
+                          form="{{ form_id }}"
+                          data-adjust-type="{{ adj.value_type }}"
+                          data-adjust-value="{{ adj.value }}"
+                        >
                         <span class="pdp__plan-body">
                           <span class="pdp__plan-name">{{ group.name }} · {{ plan.name }}</span>
-                          {%- assign adj = plan.price_adjustments.first %}
                           {%- if adj.value_type == 'percentage' %}
                             <span class="pdp__plan-save">{{ 'products.product.save_percent' | t: value: adj.value }}</span>
                           {%- elsif adj.value_type == 'fixed_amount' %}
-                            <span class="pdp__plan-save">{{ 'products.product.save_amount' | t: value: adj.value | money }}</span>
+                            {%- assign saving = adj.value | money %}
+                            <span class="pdp__plan-save">{{ 'products.product.save_amount' | t: value: saving }}</span>
                           {%- endif %}
                         </span>
                       </label>
@@ -305,6 +313,8 @@
             "id": {{ variant.id | json }},
             "options": {{ variant.options | json }},
             "available": {{ variant.available | json }},
+            "cents": {{ variant.price | json }},
+            "compareCents": {{ variant.compare_at_price | default: 0 | json }},
             "price": {{ variant.price | money | json }},
             "compare": {% if variant.compare_at_price > variant.price %}{{ variant.compare_at_price | money | json }}{% else %}""{% endif %},
             "unit": {% if variant.unit_price_measurement %}{{ variant.unit_price | unit_price_with_measurement: variant.unit_price_measurement | json }}{% else %}""{% endif %},
@@ -312,6 +322,7 @@
           }{% unless forloop.last %},{% endunless %}
         {%- endfor %}
       ],
+      "moneyFormat": {{ shop.money_format | json }},
       "labels": {
         "add": {{ 'products.product.add_to_cart' | t | json }},
         "soldOut": {{ 'products.product.sold_out' | t | json }},
@@ -346,7 +357,17 @@
   "name": "Product",
   "tag": "div",
   "settings": [
-    { "type": "checkbox", "id": "blend_images", "label": "Blend photo backgrounds into the studio panel", "default": true, "info": "Works for photos shot on a white or light grey background." }
+    {
+      "type": "select",
+      "id": "image_fit",
+      "label": "Photo fit",
+      "options": [
+        { "value": "contain", "label": "Show the whole photo (product on a plain background)" },
+        { "value": "cover", "label": "Fill the frame (lifestyle photos)" }
+      ],
+      "default": "contain"
+    },
+    { "type": "checkbox", "id": "blend_images", "label": "Blend photo backgrounds into the studio panel", "default": true, "info": "Works for photos shot on a white or light grey background. Turn off for lifestyle photos." }
   ],
   "blocks": [
     { "type": "@app" },

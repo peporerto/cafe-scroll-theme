@@ -67,12 +67,12 @@ function defaults(arr){const o={};for(const s of arr||[]) if(s.id) o[s.id]=s.def
 function demoProduct(variantId){
   const sizes=['250 g','1 kg'], grinds=['Whole bean','Espresso','Filter'];
   const variants=[]; let id=4100;
-  for(const s of sizes) for(const g of grinds){ id++; variants.push({ id, title:`${s} / ${g}`, options:[s,g], option1:s, option2:g, price: s==='250 g'?1800:5600, compare_at_price: s==='1 kg'?6400:null, available: !(s==='1 kg' && g==='Espresso'), sku:`YRG-${id}`, unit_price: s==='250 g'?720:560, unit_price_measurement:{reference_value:100,reference_unit:'g'}, featured_media:{ id: g==='Filter'?903:901 } }); }
+  for(const s of sizes) for(const g of grinds){ id++; variants.push({ id, title:`${s} / ${g}`, options:[s,g], option1:s, option2:g, price: s==='250 g'?1800:5600, compare_at_price: s==='1 kg'?6400:null, available: !(s==='1 kg' && g==='Espresso'), sku:`YRG-${id}`, unit_price: s==='250 g'?720:560, unit_price_measurement:{reference_value:100,reference_unit:'g'}, featured_media:{ id: g==='Filter'?902:901 } }); }
   const media=[
-    { id:901, media_type:'image', alt:'Roasted bean', src:'/assets/bean-spin-000.webp', width:560, height:560 },
-    { id:902, media_type:'image', alt:'Bean cut open', src:'/assets/bean-cut.webp', width:616, height:561 },
-    { id:903, media_type:'image', alt:'Open bag with beans', src: has('hero-open.jpg')||'/assets/bean-spin-010.webp', width:1672, height:941 },
-    { id:904, media_type:'image', alt:'Bean, another side', src:'/assets/bean-spin-050.webp', width:560, height:560 },
+    { id:901, media_type:'image', alt:'Closed coffee bag', src: has('product-bag-closed.jpg'), width:1000, height:1250 },
+    { id:902, media_type:'image', alt:'Open coffee bag with beans', src: has('product-bag-open.jpg'), width:960, height:1200 },
+    { id:903, media_type:'image', alt:'Coffee bag in the plantation', src: has('hero-far.jpg'), width:1376, height:768 },
+    { id:904, media_type:'image', alt:'Open bag on the hillside', src: has('hero-open.jpg'), width:1672, height:941 },
   ];
   media.forEach(m=>m.preview_image={src:m.src});
   const current = variants.find(v=>v.id==variantId) || variants[0];
@@ -118,6 +118,8 @@ export async function render(kind='index', opts={}){
   const tpl=JSON.parse(fs.readFileSync(path.join(T,`templates/${tplName}.json`),'utf8'));
   const extra = kind==='product' ? { product: demoProduct(opts.variant) } : {};
   const request = {...REQUEST, page_type: kind==='product'?'product':'index'};
+  // the demo photos are lifestyle shots (not product shots on white), so the preview fills the frame and skips the blend
+  if (kind==='product') tpl.sections.main.settings={...tpl.sections.main.settings, blend_images:false, image_fit:'cover'};
   let main=''; for(const id of tpl.order){ main+=await renderSection(tpl.sections[id].type,id,tpl.sections[id],{...extra,request});}
   let layout=fs.readFileSync(path.join(T,'layout/theme.liquid'),'utf8');
   const header=await renderSection('header','header'), footer=await renderSection('footer','footer');
