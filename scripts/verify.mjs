@@ -198,7 +198,7 @@ async function run() {
     const textCheck = await pageNoJs.evaluate(() => {
       const h1 = document.querySelector('.hero__heading')?.innerText;
       const story = document.querySelector('.story__phrase')?.innerText;
-      const anatomyCard = document.querySelector('.anat__cards .card-title')?.innerText;
+      const anatomyCard = document.querySelector('.anat__card-title')?.innerText;
       const roastTitle = document.querySelector('.roast-sim__title')?.innerText;
       const catalogTitle = document.querySelector('.catalog__title')?.innerText;
       return { h1, story, anatomyCard, roastTitle, catalogTitle };
