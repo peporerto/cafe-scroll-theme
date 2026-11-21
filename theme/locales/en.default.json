@@ -5,7 +5,8 @@
     "footer_navigation": "Footer navigation",
     "home": "Home",
     "breadcrumb": "Breadcrumb",
-    "all_products": "All products"
+    "all_products": "All products",
+    "cart": "Cart"
   },
   "products": {
     "product": {
@@ -37,5 +38,31 @@
       "tasting_notes": "Tasting notes",
       "unit_price_separator": "per"
     }
+  },
+  "cart": {
+    "title": "Your cart",
+    "header_label": "Cart, {{ count }} items",
+    "empty": "Your cart is empty",
+    "empty_text": "Pick a coffee and it will show up here.",
+    "continue_shopping": "Continue shopping",
+    "item": "Item",
+    "remove": "Remove",
+    "remove_item": "Remove {{ title }}",
+    "update": "Update cart",
+    "quantity": "Quantity",
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "note": "Order note",
+    "note_placeholder": "Anything we should know?",
+    "taxes_shipping": "Taxes and shipping are calculated at checkout.",
+    "checkout": "Check out",
+    "line_total": "Total",
+    "each": "each",
+    "subscription": "Subscription",
+    "error": "We could not update your cart. Please try again.",
+    "added": "Added to cart",
+    "view_cart": "View cart",
+    "updated": "Cart updated",
+    "count_label": "Cart, {{ count }} items"
   }
 }

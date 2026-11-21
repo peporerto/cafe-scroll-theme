@@ -1,0 +1,129 @@
+{{ 'cart.css' | asset_url | stylesheet_tag }}
+
+<section
+  class="cart"
+  id="cart-{{ section.id }}"
+  data-section-id="{{ section.id }}"
+  data-section-type="main-cart"
+  data-cart-url="{{ routes.cart_url }}"
+  data-updated="{{ 'cart.updated' | t }}"
+>
+  <p class="visually-hidden" role="status" data-cart-status></p>
+  <div data-cart-root data-item-count="{{ cart.item_count }}">
+    <header class="cart__head">
+      <h1 class="cart__title" tabindex="-1" data-cart-title>{{ 'cart.title' | t }}</h1>
+      {%- if cart.item_count > 0 %}
+        <a class="cart__continue" href="{{ routes.all_products_collection_url }}">{{ 'cart.continue_shopping' | t }}</a>
+      {%- endif %}
+    </header>
+
+    {%- if cart.item_count == 0 %}
+      <div class="cart__empty">
+        <p class="cart__empty-title">{{ 'cart.empty' | t }}</p>
+        <p class="cart__empty-text">{{ 'cart.empty_text' | t }}</p>
+        <a class="cart__btn cart__btn--light" href="{{ routes.all_products_collection_url }}">{{ 'cart.continue_shopping' | t }}</a>
+      </div>
+    {%- else %}
+      <form class="cart__form" action="{{ routes.cart_url }}" method="post" novalidate data-cart-form>
+        {%- comment -%} First submit button in the form: Enter inside a quantity field updates the cart instead of going to checkout. {%- endcomment -%}
+        <button type="submit" name="update" class="visually-hidden" tabindex="-1" aria-hidden="true"></button>
+        <div class="cart__lines">
+          <ul class="cart__items" role="list">
+            {%- for item in cart.items %}
+              <li class="cart__item" data-line="{{ forloop.index }}" data-key="{{ item.key }}">
+                <a class="cart__thumb" href="{{ item.url }}" tabindex="-1" aria-hidden="true">
+                  {%- if item.image != blank %}
+                    {{ item.image | image_url: width: 320 | image_tag: loading: 'lazy', widths: '160,240,320', sizes: '110px', alt: item.image.alt }}
+                  {%- endif %}
+                </a>
+
+                <div class="cart__info">
+                  <a class="cart__name" href="{{ item.url }}">{{ item.product.title }}</a>
+                  {%- unless item.product.has_only_default_variant %}
+                    <p class="cart__meta">{{ item.variant.title }}</p>
+                  {%- endunless %}
+                  {%- if item.selling_plan_allocation != blank %}
+                    <p class="cart__meta cart__meta--plan">{{ 'cart.subscription' | t }}: {{ item.selling_plan_allocation.selling_plan.name }}</p>
+                  {%- endif %}
+                  {%- for property in item.properties %}
+                    {%- assign first_char = property.first | slice: 0 %}
+                    {%- if property.last != blank and first_char != '_' %}
+                      <p class="cart__meta">{{ property.first }}: {{ property.last }}</p>
+                    {%- endif %}
+                  {%- endfor %}
+                  <p class="cart__unit">
+                    {%- if item.original_price > item.final_price %}<s>{{ item.original_price | money }}</s> {% endif -%}
+                    {{ item.final_price | money }} <span>{{ 'cart.each' | t }}</span>
+                  </p>
+                </div>
+
+                <div class="cart__qty">
+                  <div class="cart__stepper">
+                    <button type="button" class="cart__step" data-step="-1" aria-label="{{ 'products.product.quantity_decrease' | t }}">&minus;</button>
+                    <input
+                      class="cart__qty-input"
+                      type="number"
+                      name="updates[]"
+                      value="{{ item.quantity }}"
+                      min="0"
+                      inputmode="numeric"
+                      aria-label="{{ 'cart.quantity' | t }}: {{ item.product.title }}"
+                      data-qty
+                    >
+                    <button type="button" class="cart__step" data-step="1" aria-label="{{ 'products.product.quantity_increase' | t }}">+</button>
+                  </div>
+                  <a class="cart__remove" href="{{ item.url_to_remove }}" data-remove aria-label="{{ 'cart.remove_item' | t: title: item.product.title }}">{{ 'cart.remove' | t }}</a>
+                </div>
+
+                <p class="cart__line-total" aria-label="{{ 'cart.line_total' | t }}">
+                  {%- if item.original_line_price > item.final_line_price %}<s>{{ item.original_line_price | money }}</s>{% endif -%}
+                  <span>{{ item.final_line_price | money }}</span>
+                </p>
+              </li>
+            {%- endfor %}
+          </ul>
+          <p class="cart__error" role="alert" data-cart-error hidden>{{ 'cart.error' | t }}</p>
+        </div>
+
+        <aside class="cart__summary" aria-label="{{ 'cart.subtotal' | t }}">
+          <div class="cart__row cart__row--subtotal">
+            <span>{{ 'cart.subtotal' | t }}</span>
+            <span class="cart__subtotal" data-subtotal>{{ cart.items_subtotal_price | money }}</span>
+          </div>
+          {%- for discount in cart.cart_level_discount_applications %}
+            <div class="cart__row cart__row--discount">
+              <span>{{ discount.title }}</span>
+              <span>&minus;{{ discount.total_allocated_amount | money }}</span>
+            </div>
+          {%- endfor %}
+          {%- if cart.cart_level_discount_applications.size > 0 %}
+            <div class="cart__row cart__row--total">
+              <span>{{ 'cart.line_total' | t }}</span>
+              <span>{{ cart.total_price | money }}</span>
+            </div>
+          {%- endif %}
+
+          <label class="cart__note">
+            <span>{{ 'cart.note' | t }}</span>
+            <textarea name="note" rows="2" placeholder="{{ 'cart.note_placeholder' | t }}">{{ cart.note }}</textarea>
+          </label>
+
+          <p class="cart__fine">{{ 'cart.taxes_shipping' | t }}</p>
+
+          <button type="submit" name="checkout" class="cart__btn cart__btn--primary">{{ 'cart.checkout' | t }}</button>
+          <button type="submit" name="update" class="cart__btn cart__btn--ghost cart__update">{{ 'cart.update' | t }}</button>
+        </aside>
+      </form>
+    {%- endif %}
+  </div>
+</section>
+
+<script src="{{ 'cart.js' | asset_url }}" type="module" defer></script>
+
+{% schema %}
+{
+  "name": "Cart",
+  "tag": "div",
+  "settings": []
+}
+{% endschema %}

@@ -4,6 +4,8 @@
  * Without this file the page still works: a select sends the variant id and the form posts to the cart.
  */
 
+import { addToCart, getCart, setCount, toast } from './cart-api.js';
+
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const isPhone = window.matchMedia('(max-width: 899px)');
 
@@ -155,6 +157,34 @@ function init(root) {
   qty?.addEventListener('input', () => update({ media: false }));
   qty?.addEventListener('change', () => { qty.value = quantity(); update({ media: false }); });
   update({ media: false });
+
+  // ---- add to cart without leaving the page (the plain form post is the fallback) ----
+  let adding = false;
+  form?.addEventListener('submit', async (e) => {
+    const by = e.submitter;
+    if (by && !by.matches('[data-atc], [data-bar-atc]')) return; // dynamic checkout buttons do their own thing
+    const v = currentVariant();
+    if (!v || !v.available) { e.preventDefault(); return; }
+    e.preventDefault();
+    if (adding) return;
+    adding = true;
+    [atc, barBtn].forEach((b) => b?.setAttribute('aria-busy', 'true'));
+    try {
+      await addToCart(form);
+      const cart = await getCart();
+      setCount(cart.item_count, { bump: true });
+      const done = data.labels.added;
+      if (atcLabel) atcLabel.textContent = done;
+      if (barLabel) barLabel.textContent = done;
+      toast(done, { link: { text: data.labels.viewCart, href: data.labels.cartUrl } });
+      setTimeout(() => update({ media: false }), 1800);
+    } catch (err) {
+      toast(err.message && err.status === 422 ? err.message : data.labels.error, { error: true });
+    } finally {
+      adding = false;
+      [atc, barBtn].forEach((b) => b?.removeAttribute('aria-busy'));
+    }
+  });
 
   // ---- mobile buy bar: shows once the main button has scrolled out of view ----
   let io;

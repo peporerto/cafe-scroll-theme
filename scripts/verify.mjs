@@ -96,7 +96,7 @@ async function run() {
     page.on('request', (req) => scrollRequests.push(req.url()));
 
     await page.evaluate(() => {
-      const bean = document.querySelector('.bean-anatomy');
+      const bean = document.querySelector('.hero__anat');
       if (bean) {
         window.scrollTo(0, bean.offsetTop - 500);
       }
@@ -128,7 +128,7 @@ async function run() {
         await page.evaluate(({ sec, pct, vpHeight }) => {
           let targetEl = null;
           if (sec === 'hero') targetEl = document.querySelector('.hero');
-          else if (sec === 'bean') targetEl = document.querySelector('.bean-anatomy');
+          else if (sec === 'bean') targetEl = document.querySelector('.hero__anat');
           else if (sec === 'simulador') targetEl = document.querySelector('.roast-sim');
 
           if (!targetEl) return;
@@ -198,7 +198,7 @@ async function run() {
     const textCheck = await pageNoJs.evaluate(() => {
       const h1 = document.querySelector('.hero__heading')?.innerText;
       const story = document.querySelector('.story__phrase')?.innerText;
-      const anatomyCard = document.querySelector('.bean-anatomy__card-title')?.innerText;
+      const anatomyCard = document.querySelector('.anat__cards .card-title')?.innerText;
       const roastTitle = document.querySelector('.roast-sim__title')?.innerText;
       const catalogTitle = document.querySelector('.catalog__title')?.innerText;
       return { h1, story, anatomyCard, roastTitle, catalogTitle };

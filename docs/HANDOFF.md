@@ -46,7 +46,7 @@ Actualizado: 2026-11-19. Para abrir una conversación nueva sin perder contexto.
 | Catálogo | Bien | Pared con 4 nichos; la luz se enciende con hover (escritorio) o al deslizar (móvil); sin foto dibuja una pared CSS |
 | Header / footer | Mínimos | Solo marca y menú; el footer está desactivado en la home; no hay carrito |
 
-Páginas existentes: `templates/index.json` (landing de impacto) y `templates/product.json` (página de producto, 2026-11-20). Faltan cart, collection, list-collections, page, blog, article, search, 404, password, gift_card.
+Páginas existentes: `templates/index.json` (landing de impacto) y `templates/product.json` (página de producto, 2026-11-20) y `templates/cart.json` (carrito, 2026-11-20). Faltan collection, list-collections, page, blog, article, search, 404, password, gift_card.
 
 ### Peso medido (build actual)
 
@@ -61,7 +61,7 @@ Páginas existentes: `templates/index.json` (landing de impacto) y `templates/pr
 
 Referencia: requisitos del Shopify Theme Store (https://shopify.dev/docs/storefronts/themes/store/requirements). No vamos a enviarlo al Theme Store, pero es la vara de un tema "de pago serio".
 
-### A. Plantillas obligatorias que faltan (hoy existen `index.json` y `product.json`)
+### A. Plantillas obligatorias que faltan (hoy existen `index.json`, `product.json` y `cart.json`)
 
 `product.json` (la más crítica: precio, variantes tamaño/molienda/tueste, agregar al carrito, galería), `cart.json`, `collection.json`, `list-collections.json`, `page.json`, `page.contact.json`, `blog.json`, `article.json`, `search.json`, `404.json`, `password.json`, `gift_card.liquid`, `settings_data.json`. Todas con soporte de secciones. Sección "Custom Liquid". Header y footer como section groups.
 
@@ -215,4 +215,13 @@ Documento: `Template_de__300_USD.html` (lo pasó Santiago). Muse asumió una pá
 - Datos estructurados: Product con `structured_data` (oficial de Shopify) y BreadcrumbList.
 - Notas de cata: el campo del bloque se puede conectar a un metafield como fuente dinámica para que cambie por producto (sin conectar, todos los productos muestran el mismo texto).
 - Vista previa local: `npm run preview` y abre `/products/ethiopia-yirgacheffe` (producto de prueba con 6 variantes, una agotada, y 2 planes de suscripción). Theme Check limpio.
-- Pendiente de esta página: el botón agrega por formulario normal (recarga a /cart); cuando exista el carrito deslizable se cambia a Ajax. Falta sección de productos recomendados y de reseñas.
+- Agregar al carrito: por Ajax (`/cart/add.js`), sin recargar: aviso "Added to cart · View cart" y contador del header. Sin JS cae al formulario normal (/cart/add). Falta sección de productos recomendados y de reseñas.
+
+## 11. Carrito (hecho 2026-11-20)
+
+- Archivos: `theme/templates/cart.json`, `theme/sections/main-cart.liquid`, `theme/assets/cart.css`, `src/cart.js` (entrada propia) y `src/cart-api.js` (ayudas compartidas con producto: `addToCart`, `changeLine`, `updateNote`, `setCount`, `toast`). Ícono con contador en `theme/sections/header.liquid` (`[data-cart-count]`, se actualiza sin recargar).
+- Funciona sin JS: cada línea es un campo `updates[]`; botón "Update cart" y "Check out" (`name=checkout`); un botón `update` oculto va primero para que Enter en una cantidad actualice y NO vaya a pago. El link "Remove" es `item.url_to_remove`.
+- Con JS: +/- y cantidad escrita llaman a `/cart/change.js` (una petición a la vez, en cola), luego se vuelve a pintar la sección con la API de renderizado (`/cart?sections=<id>`), así precios, descuentos y suscripción son siempre los reales de Shopify. Mantiene el foco, anuncia "Cart updated" (región `role=status`) y muestra error si hay stock insuficiente (422). La nota del pedido se guarda en `/cart/update.js`.
+- Muestra precio tachado y total de línea con descuento, plan de suscripción por línea, descuentos de carrito y estado vacío.
+- Vista previa local: `npm run preview` y abre `/cart`. El servidor simula en memoria la API de carrito de Shopify (`/cart.js`, `/cart/add.js`, `/cart/change.js`, `/cart/update.js`, `?sections=`); agrega desde el producto de prueba. `/__cart/reset` lo vacía. Probado: escritorio, celular 390 px (sin scroll horizontal), sin JS, Enter en cantidad, quitar, estado vacío y foco. Theme Check limpio.
+- Pendiente: carrito deslizable (drawer) opcional, barra de envío gratis, productos sugeridos en el carrito, botones de pago exprés (`additional_checkout_buttons`), campo de código de descuento (Shopify lo pide en checkout).

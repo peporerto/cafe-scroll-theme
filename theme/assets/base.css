@@ -29,6 +29,15 @@ body {
 .site-header nav ul { display: flex; gap: 1.5rem; margin: 0; padding: 0; list-style: none; }
 .site-header a { color: inherit; text-decoration: none; }
 .site-header a:hover { text-decoration: underline; }
+.site-header nav { margin-left: auto; }
+.site-header__cart { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 2.75rem; height: 2.75rem; margin-right: -.5rem; border-radius: 50%; }
+.site-header .site-header__cart:hover { text-decoration: none; color: var(--color-accent); }
+.site-header__cart:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.site-header__cart-count { position: absolute; top: .15rem; right: .05rem; min-width: 1.1rem; height: 1.1rem; padding: 0 .3rem; border-radius: 999px; background: var(--color-accent); color: #14110f; font-size: .68rem; font-weight: 700; line-height: 1.1rem; text-align: center; font-variant-numeric: tabular-nums; }
+.site-header__cart-count[hidden] { display: none; }
+.site-header__cart-count.is-bump { animation: cart-bump .45s ease; }
+@keyframes cart-bump { 40% { transform: scale(1.35); } }
+@media (prefers-reduced-motion: reduce) { .site-header__cart-count.is-bump { animation: none; } }
 
 /* --- Hero --- */
 .hero {
@@ -438,3 +447,14 @@ html.js-motion:is([data-motion-effective="full"], [data-motion-effective="reduce
   .catalog__scroller::-webkit-scrollbar { display: none; }
   .catalog__track { position: relative; width: 300vw; height: auto; aspect-ratio: 1376 / 768; margin-inline: 20vw; }
 }
+
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* "Added to cart" notice */
+.cart-toast { position: fixed; z-index: 60; top: 4.75rem; right: 1rem; display: flex; align-items: center; gap: 1rem; max-width: calc(100vw - 2rem); padding: .85rem 1.1rem; background: var(--color-studio, #ECEAE4); color: var(--color-ink, #1e1a16); border-radius: 12px; box-shadow: 0 18px 40px rgba(0, 0, 0, .45); font-size: .92rem; animation: toast-in .35s cubic-bezier(.2, .8, .2, 1); }
+.cart-toast a { font-weight: 700; color: inherit; text-underline-offset: 3px; white-space: nowrap; }
+.cart-toast--error { background: #3a1d17; color: #f0b5a5; }
+.cart-toast.is-leaving { opacity: 0; transform: translateY(-6px); transition: opacity .25s, transform .25s; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(-8px); } }
+@media (max-width: 899px) { .cart-toast { left: 1rem; right: 1rem; justify-content: space-between; } }
+@media (prefers-reduced-motion: reduce) { .cart-toast { animation: none; } .cart-toast.is-leaving { transition: none; } }

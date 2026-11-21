@@ -1,5 +1,5 @@
 // Renders the theme's Liquid WITHOUT Shopify, for local preview and tests.
-// Pages: render('index') for the home, render('product') for the product page (with a demo product).
+// Pages: render('index'), render('product') (demo product) and render('cart') (in-memory demo cart, see cartApi).
 import { Liquid } from 'liquidjs';
 import fs from 'node:fs'; import path from 'node:path';
 const T = path.resolve('theme');
@@ -93,6 +93,50 @@ function demoProduct(variantId){
   };
 }
 
+// ---- demo cart: lives in memory in the preview server and mimics Shopify's Ajax Cart API ----
+const CART = { items: [], note: '' };
+const PLANS = { 11: { name: 'Every 2 weeks', pct: 10 }, 12: { name: 'Every month', pct: 7 } };
+const itemKey = (id, plan) => `${id}:${plan || ''}`;
+function buildCart(){
+  const p = demoProduct();
+  const items = CART.items.map((it, i) => {
+    const v = p.variants.find(x => x.id == it.id);
+    const plan = PLANS[it.plan];
+    const orig = v.price, fin = plan ? Math.round(orig * (100 - plan.pct) / 100) : orig;
+    return { key: itemKey(it.id, it.plan), id: it.id, quantity: it.quantity, url: `/products/${p.handle}?variant=${it.id}`, url_to_remove: `/cart/change?line=${i + 1}&quantity=0`,
+      image: { src: p.media[v.options[1] === 'Filter' ? 1 : 0].src, alt: p.title }, product: { title: p.title, has_only_default_variant: false },
+      variant: { title: v.title }, selling_plan_allocation: plan ? { selling_plan: { name: plan.name } } : null, properties: {},
+      original_price: orig, final_price: fin, original_line_price: orig * it.quantity, final_line_price: fin * it.quantity };
+  });
+  const sub = items.reduce((n, i) => n + i.final_line_price, 0);
+  return { items, item_count: items.reduce((n, i) => n + i.quantity, 0), items_subtotal_price: sub, total_price: sub, note: CART.note, cart_level_discount_applications: [] };
+}
+export const cartApi = {
+  add(id, quantity = 1, plan = '') {
+    const v = demoProduct().variants.find(x => x.id == id);
+    if (!v) return { status: 404, body: { status: 404, message: 'Not Found', description: 'Cannot find variant' } };
+    if (!v.available) return { status: 422, body: { status: 422, message: 'Cart Error', description: 'All 1 kg / Espresso are in your cart.' } };
+    const line = CART.items.find(x => itemKey(x.id, x.plan) === itemKey(id, plan));
+    if (line) line.quantity += quantity; else CART.items.push({ id: Number(id), quantity, plan: plan || '' });
+    return { status: 200, body: { id: Number(id), quantity } };
+  },
+  change(key, quantity) {
+    const i = CART.items.findIndex(x => itemKey(x.id, x.plan) === key);
+    if (i < 0) return;
+    if (quantity <= 0) CART.items.splice(i, 1); else CART.items[i].quantity = quantity;
+  },
+  changeLine(line, quantity) { const it = CART.items[line - 1]; if (it) this.change(itemKey(it.id, it.plan), quantity); },
+  setNote(note) { CART.note = note || ''; },
+  json: () => buildCart(),
+  reset() { CART.items.length = 0; CART.note = ''; },
+  items: () => CART.items,
+};
+export async function renderCartSection(id = 'main') {
+  const tpl = JSON.parse(fs.readFileSync(path.join(T, 'templates/cart.json'), 'utf8'));
+  const html = await renderSection(tpl.sections[id].type, id, tpl.sections[id], { request: { ...REQUEST, page_type: 'cart' } });
+  return `<div id="shopify-section-${id}" class="shopify-section">${html}</div>`;
+}
+
 async function renderSection(name,id,tpl,extra={}){
   const raw=fs.readFileSync(path.join(T,'sections',name+'.liquid'),'utf8');
   const m=raw.match(/{%\s*schema\s*%}([\s\S]*?){%\s*endschema\s*%}/);
@@ -107,24 +151,24 @@ async function renderSection(name,id,tpl,extra={}){
     for(const b of preset.blocks||[]) blocks.push({type:b.type,settings:{...defaults(bt[b.type]?.settings),...(b.settings||{})},shopify_attributes:''});
     if(!blocks.length && schema.max_blocks!==0 && (schema.blocks||[]).length){ for(let i=0;i<4;i++){ const b=schema.blocks[0]; blocks.push({type:b.type,settings:defaults(b.settings),shopify_attributes:''}); } }
   }
-  return engine.parseAndRender(body,{section:{id,settings,blocks},settings:gsettings,shop:SHOP,routes:ROUTES,linklists:{},request:REQUEST,collections:{},products:[],...extra});
+  return engine.parseAndRender(body,{section:{id,settings,blocks},settings:gsettings,shop:SHOP,routes:ROUTES,linklists:{},request:REQUEST,collections:{},products:[],cart:buildCart(),...extra});
 }
 const SHOP={name:'Altura',url:'https://altura.example',money_format:'${{amount}}'};
-const ROUTES={root_url:'/'};
+const ROUTES={root_url:'/',cart_url:'/cart',all_products_collection_url:'/products/ethiopia-yirgacheffe'};
 const REQUEST={locale:{iso_code:'en'},page_type:'index'};
 
 export async function render(kind='index', opts={}){
-  const tplName = kind==='product' ? 'product' : 'index';
+  const tplName = kind;
   const tpl=JSON.parse(fs.readFileSync(path.join(T,`templates/${tplName}.json`),'utf8'));
   const extra = kind==='product' ? { product: demoProduct(opts.variant) } : {};
-  const request = {...REQUEST, page_type: kind==='product'?'product':'index'};
+  const request = {...REQUEST, page_type: kind};
   // the demo photos are lifestyle shots (not product shots on white), so the preview fills the frame and skips the blend
   if (kind==='product') tpl.sections.main.settings={...tpl.sections.main.settings, blend_images:false, image_fit:'cover'};
   let main=''; for(const id of tpl.order){ main+=await renderSection(tpl.sections[id].type,id,tpl.sections[id],{...extra,request});}
   let layout=fs.readFileSync(path.join(T,'layout/theme.liquid'),'utf8');
   const header=await renderSection('header','header'), footer=await renderSection('footer','footer');
   layout=layout.replace(/{%\s*section 'header'\s*%}/,'__H__').replace(/{%\s*section 'footer'\s*%}/,'__F__').replace('{{ content_for_layout }}','__M__');
-  let html=await engine.parseAndRender(layout,{settings:gsettings,shop:SHOP,request,...extra,page_title:kind==='product'?'Ethiopia Yirgacheffe – Altura':'Altura',canonical_url:'',content_for_header:''});
+  let html=await engine.parseAndRender(layout,{settings:gsettings,shop:SHOP,request,routes:ROUTES,cart:buildCart(),...extra,page_title:kind==='product'?'Ethiopia Yirgacheffe – Altura':kind==='cart'?'Your cart – Altura':'Altura',canonical_url:'',content_for_header:''});
   html=html.replace('__H__',header).replace('__F__',footer).replace('__M__',main);
   return html;
 }
