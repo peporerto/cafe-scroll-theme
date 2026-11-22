@@ -43,5 +43,5 @@ http.createServer(async (q, r) => {
     if (p === '/__cart/reset') { cartApi.reset(); return redirect(r, '/cart'); }
   } catch (e) { r.writeHead(500); return r.end(String(e.stack || e)); }
   const clean = p.replace(/\.\./g, ''); const f = clean.startsWith('/preview-images/') ? clean.slice(1) : path.join('theme', clean);
-  fs.readFile(f, (e, d) => { if (e) { r.writeHead(404); return r.end('nf'); } r.writeHead(200, {'Content-Type': mime[path.extname(f)] || 'application/octet-stream'}); r.end(d); });
+  fs.readFile(f, (e, d) => { if (e) { r.writeHead(404); return r.end('nf'); } r.writeHead(200, {'Content-Type': mime[path.extname(f)] || 'application/octet-stream', 'Cache-Control': 'no-store'}); r.end(d); });
 }).listen(3000, () => console.log('Abre http://localhost:3000 (home), /products/ethiopia-yirgacheffe (producto de prueba) o /cart (carrito de prueba en memoria; /__cart/reset lo vacia). Recarga tras npm run build'));
