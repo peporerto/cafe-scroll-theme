@@ -1,0 +1,50 @@
+{%- comment -%}
+  Product card for grids (collection, search, related products).
+  Params: product, loading ('lazy' | 'eager'), sizes, show_type (bool), image_fit ('contain' | 'cover')
+{%- endcomment -%}
+{%- liquid
+  assign first = product.featured_media
+  assign second = product.media[1]
+  assign alt_text = first.alt | default: product.title
+  assign on_sale = false
+  if product.compare_at_price > product.price
+    assign on_sale = true
+  endif
+  assign img_loading = loading | default: 'lazy'
+  assign img_sizes = sizes | default: '(min-width: 900px) 25vw, 46vw'
+-%}
+<article class="card{% unless product.available %} card--soldout{% endunless %}{% if image_fit == 'cover' %} card--cover{% endif %}">
+  <div class="card__media">
+    {%- if first != blank %}
+      {{
+        first.preview_image
+        | image_url: width: 900
+        | image_tag: class: 'card__img card__img--main', loading: img_loading, widths: '320,480,640,900', sizes: img_sizes, alt: alt_text
+      }}
+      {%- if second != blank and second.media_type == 'image' %}
+        {{
+          second.preview_image
+          | image_url: width: 900
+          | image_tag: class: 'card__img card__img--hover', loading: 'lazy', widths: '320,480,640,900', sizes: img_sizes, alt: ''
+        }}
+      {%- endif %}
+    {%- else %}
+      <span class="card__empty">{{ 'products.product.no_image' | t }}</span>
+    {%- endif %}
+    {%- unless product.available %}
+      <span class="card__badge">{{ 'collections.sold_out' | t }}</span>
+    {%- elsif on_sale %}
+      <span class="card__badge card__badge--sale">{{ 'collections.sale' | t }}</span>
+    {%- endunless %}
+  </div>
+  <div class="card__body">
+    {%- if show_type and product.type != blank %}
+      <p class="card__type">{{ product.type }}</p>
+    {%- endif %}
+    <h3 class="card__title"><a class="card__link" href="{{ product.url }}">{{ product.title }}</a></h3>
+    <p class="card__price">
+      {%- if on_sale %}<s class="card__was">{{ product.compare_at_price | money }}</s>{% endif -%}
+      <span class="card__now">{% if product.price_varies %}{{ 'collections.from' | t }} {% endif %}{{ product.price | money }}</span>
+    </p>
+  </div>
+</article>

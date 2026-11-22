@@ -1,5 +1,5 @@
 // Renders the theme's Liquid WITHOUT Shopify, for local preview and tests.
-// Pages: render('index'), render('product') (demo product) and render('cart') (in-memory demo cart, see cartApi).
+// Pages: render('index'), render('product') (demo product) and render('cart') (in-memory demo cart, see cartApi) and render('collection') (9 demo products with filters, sorting and pagination).
 import { Liquid } from 'liquidjs';
 import fs from 'node:fs'; import path from 'node:path';
 const T = path.resolve('theme');
@@ -50,6 +50,35 @@ engine.registerTag('form', {
     yield this.liquid.renderer.renderTemplates(this.tpls, ctx, emitter);
     ctx.pop();
     emitter.write('</form>');
+  },
+});
+
+// ---- {% paginate collection.products by 12 %} ... {% endpaginate %}: slices the list and sets `paginate` like Shopify ----
+engine.registerTag('paginate', {
+  parse(token, remainTokens){
+    this.args = token.args; this.tpls = [];
+    const stream = this.liquid.parser.parseStream(remainTokens)
+      .on('tag:endpaginate', ()=>stream.stop())
+      .on('template', tpl=>this.tpls.push(tpl))
+      .on('end', ()=>{ throw new Error('tag endpaginate not closed'); });
+    stream.start();
+  },
+  * render(ctx, emitter){
+    const m = this.args.match(/^(.+?)\s+by\s+(.+)$/);
+    const list = (yield this.liquid.evalValue(m[1], ctx)) || [];
+    const per = Number(yield this.liquid.evalValue(m[2], ctx)) || 12;
+    const req = ctx.get(['request']) || {};
+    const pages = Math.max(1, Math.ceil(list.length / per));
+    const cur = Math.min(Math.max(1, Number(req.current_page) || 1), pages);
+    const url = (n) => (req.page_urls || [])[n - 1] || '#';
+    const nums = pages <= 7 ? [...Array(pages)].map((_, i) => i + 1) : [...new Set([1, cur - 1, cur, cur + 1, pages].filter(n => n >= 1 && n <= pages))];
+    const parts = []; let last = 0;
+    for (const n of nums) { if (n - last > 1) parts.push({ title: '…', is_link: false }); parts.push(n === cur ? { title: n, is_link: false } : { title: n, url: url(n), is_link: true }); last = n; }
+    const paginate = { pages, current_page: cur, items: list.length, page_size: per, current_offset: (cur - 1) * per, previous: cur > 1 ? { url: url(cur - 1) } : null, next: cur < pages ? { url: url(cur + 1) } : null, parts };
+    const collection = { ...ctx.get(['collection']), products: list.slice((cur - 1) * per, cur * per) };
+    ctx.push({ paginate, collection });
+    yield this.liquid.renderer.renderTemplates(this.tpls, ctx, emitter);
+    ctx.pop();
   },
 });
 
@@ -137,6 +166,60 @@ export async function renderCartSection(id = 'main') {
   return `<div id="shopify-section-${id}" class="shopify-section">${html}</div>`;
 }
 
+// ---- demo collection: 9 products, filters (availability, type, price), sorting, pages (page size comes from the section setting) ----
+const SORTS = [['manual','Featured'],['best-selling','Best selling'],['title-ascending','Alphabetically, A-Z'],['title-descending','Alphabetically, Z-A'],['price-ascending','Price, low to high'],['price-descending','Price, high to low'],['created-descending','Date, new to old'],['created-ascending','Date, old to new']];
+const COFFEES = [
+  ['Ethiopia Yirgacheffe','Single origin',1800,5600,0,true],['Colombia Huila','Single origin',1700,5300,0,true],['Kenya AA Nyeri','Single origin',1900,5900,0,true],
+  ['Guatemala Antigua','Single origin',1650,5100,0,true],['Brazil Santos','Single origin',1500,0,0,false],['Sumatra Mandheling','Single origin',1750,0,0,true],
+  ['House Blend','Blend',1500,0,1800,true],['Swiss Water Decaf','Decaf',1850,0,0,true],['Tasting Box (4 x 100 g)','Gift',4900,0,0,true],
+];
+function demoCollection(handle, q){
+  const imgs = ['product-bag-closed.jpg','product-bag-open.jpg','hero-far.jpg','hero-open.jpg'].map(f=>has(f));
+  const ALL = COFFEES.map(([title,type,price,max,compare,available],i)=>{
+    const media=[0,1].map(k=>({ id:100+i*2+k, media_type:'image', alt:title, preview_image:{ src: imgs[(i+k)%4] } }));
+    const handleP = title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+    return { id:i+1, title, handle:handleP, url:`/products/${handleP}`, type, vendor:'Altura', price, price_min:price, price_max:max||price, price_varies:!!max, compare_at_price:compare||null, available, featured_media:media[0], media, idx:i };
+  });
+  const act = { avail:q.getAll('filter.v.availability'), type:q.getAll('filter.p.product_type'), gte:q.get('filter.v.price.gte'), lte:q.get('filter.v.price.lte') };
+  const has2 = (v)=> v!==null && v!=='';
+  const match = (p, skip) => (skip==='avail' || !act.avail.length || act.avail.includes(p.available?'1':'0'))
+    && (skip==='type' || !act.type.length || act.type.includes(p.type))
+    && (skip==='price' || ((!has2(act.gte) || p.price>=Math.round(act.gte*100)) && (!has2(act.lte) || p.price<=Math.round(act.lte*100))));
+  const base = `/collections/${handle}`;
+  const urlWith = (fn, page) => { const n = new URLSearchParams(q); n.delete('page'); fn(n); if (page>1) n.set('page', page); const qs=n.toString(); return qs ? `${base}?${qs}` : base; };
+  const withoutValue = (param,value)=> urlWith(n=>{ const keep=n.getAll(param).filter(v=>v!==value); n.delete(param); keep.forEach(v=>n.append(param,v)); });
+  const withValue = (param,value)=> urlWith(n=>n.append(param,value));
+  const listFilter = (label, param, key, values) => ({ label, param_name:param, type:'list',
+    active_values: values.filter(v=>q.getAll(param).includes(v.value)).map(v=>({ label:v.label, value:v.value, url_to_remove: withoutValue(param,v.value) })),
+    url_to_remove: urlWith(n=>n.delete(param)),
+    values: values.map(v=>{ const active=q.getAll(param).includes(v.value); const count=ALL.filter(p=>match(p,key)&&v.test(p)).length; return { label:v.label, value:v.value, param_name:param, count, active, url_to_add:withValue(param,v.value), url_to_remove:withoutValue(param,v.value) }; }) });
+  const filters = [
+    listFilter('Availability','filter.v.availability','avail',[{label:'In stock',value:'1',test:p=>p.available},{label:'Out of stock',value:'0',test:p=>!p.available}]),
+    listFilter('Product type','filter.p.product_type','type',[...new Set(ALL.map(p=>p.type))].map(t=>({label:t,value:t,test:p=>p.type===t}))),
+    { label:'Price', type:'price_range', range_max: Math.max(...ALL.map(p=>p.price)),
+      min_value:{ param_name:'filter.v.price.gte', value: has2(act.gte) ? Math.round(act.gte*100) : null }, max_value:{ param_name:'filter.v.price.lte', value: has2(act.lte) ? Math.round(act.lte*100) : null },
+      url_to_remove: urlWith(n=>{ n.delete('filter.v.price.gte'); n.delete('filter.v.price.lte'); }) },
+  ];
+  const sort = SORTS.some(([v])=>v===q.get('sort_by')) ? q.get('sort_by') : 'manual';
+  const by = { 'manual':(a,b)=>a.idx-b.idx, 'best-selling':(a,b)=>(b.idx*7%9)-(a.idx*7%9), 'title-ascending':(a,b)=>a.title.localeCompare(b.title), 'title-descending':(a,b)=>b.title.localeCompare(a.title), 'price-ascending':(a,b)=>a.price-b.price, 'price-descending':(a,b)=>b.price-a.price, 'created-descending':(a,b)=>b.idx-a.idx, 'created-ascending':(a,b)=>a.idx-b.idx }[sort];
+  const products = ALL.filter(p=>match(p)).sort(by);
+  return { collection: { title: handle==='all'?'Products':handle[0].toUpperCase()+handle.slice(1), handle, url:base, description:'<p>Small-lot coffees from high farms, roasted to order and shipped within 48 hours.</p>',
+    products, products_count:products.length, filters, sort_by:sort, default_sort_by:'manual', sort_options:SORTS.map(([value,name])=>({value,name})) },
+    pageUrls: (n)=>urlWith(()=>{}, n) };
+}
+function collectionExtra(handle, query){
+  const q = query instanceof URLSearchParams ? query : new URLSearchParams(query||'');
+  const { collection, pageUrls } = demoCollection(handle, q);
+  const pages = 50; // enough urls; the paginate tag only reads the ones it needs
+  return { collection, request: { ...REQUEST, page_type:'collection', current_page: Number(q.get('page'))||1, page_urls: Array.from({length:pages},(_,i)=>pageUrls(i+1)) } };
+}
+export async function renderCollectionSection(id='main', handle='all', query=''){
+  const tpl = JSON.parse(fs.readFileSync(path.join(T,'templates/collection.json'),'utf8'));
+  const settings = { ...tpl.sections[id], settings: { ...tpl.sections[id].settings, image_fit:'cover', products_per_page:8 } };
+  const html = await renderSection(tpl.sections[id].type, id, settings, collectionExtra(handle, query));
+  return `<div id="shopify-section-${id}" class="shopify-section">${html}</div>`;
+}
+
 async function renderSection(name,id,tpl,extra={}){
   const raw=fs.readFileSync(path.join(T,'sections',name+'.liquid'),'utf8');
   const m=raw.match(/{%\s*schema\s*%}([\s\S]*?){%\s*endschema\s*%}/);
@@ -154,21 +237,23 @@ async function renderSection(name,id,tpl,extra={}){
   return engine.parseAndRender(body,{section:{id,settings,blocks},settings:gsettings,shop:SHOP,routes:ROUTES,linklists:{},request:REQUEST,collections:{},products:[],cart:buildCart(),...extra});
 }
 const SHOP={name:'Altura',url:'https://altura.example',money_format:'${{amount}}'};
-const ROUTES={root_url:'/',cart_url:'/cart',all_products_collection_url:'/products/ethiopia-yirgacheffe'};
+const ROUTES={root_url:'/',cart_url:'/cart',all_products_collection_url:'/collections/all'};
 const REQUEST={locale:{iso_code:'en'},page_type:'index'};
 
 export async function render(kind='index', opts={}){
   const tplName = kind;
   const tpl=JSON.parse(fs.readFileSync(path.join(T,`templates/${tplName}.json`),'utf8'));
-  const extra = kind==='product' ? { product: demoProduct(opts.variant) } : {};
-  const request = {...REQUEST, page_type: kind};
+  let extra = kind==='product' ? { product: demoProduct(opts.variant) } : {};
+  if (kind==='collection') extra = collectionExtra(opts.handle||'all', opts.query);
+  const request = extra.request || {...REQUEST, page_type: kind};
   // the demo photos are lifestyle shots (not product shots on white), so the preview fills the frame and skips the blend
   if (kind==='product') tpl.sections.main.settings={...tpl.sections.main.settings, blend_images:false, image_fit:'cover'};
+  if (kind==='collection') tpl.sections.main.settings={...tpl.sections.main.settings, image_fit:'cover', products_per_page:8};
   let main=''; for(const id of tpl.order){ main+=await renderSection(tpl.sections[id].type,id,tpl.sections[id],{...extra,request});}
   let layout=fs.readFileSync(path.join(T,'layout/theme.liquid'),'utf8');
   const header=await renderSection('header','header'), footer=await renderSection('footer','footer');
   layout=layout.replace(/{%\s*section 'header'\s*%}/,'__H__').replace(/{%\s*section 'footer'\s*%}/,'__F__').replace('{{ content_for_layout }}','__M__');
-  let html=await engine.parseAndRender(layout,{settings:gsettings,shop:SHOP,request,routes:ROUTES,cart:buildCart(),...extra,page_title:kind==='product'?'Ethiopia Yirgacheffe – Altura':kind==='cart'?'Your cart – Altura':'Altura',canonical_url:'',content_for_header:''});
+  let html=await engine.parseAndRender(layout,{settings:gsettings,shop:SHOP,request,routes:ROUTES,cart:buildCart(),...extra,page_title:kind==='product'?'Ethiopia Yirgacheffe – Altura':kind==='cart'?'Your cart – Altura':kind==='collection'?'Coffee – Altura':'Altura',canonical_url:'',content_for_header:''});
   html=html.replace('__H__',header).replace('__F__',footer).replace('__M__',main);
   return html;
 }

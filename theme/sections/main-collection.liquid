@@ -1,0 +1,240 @@
+{{ 'collection.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign filters_on = false
+  if section.settings.show_filters and collection.filters.size > 0
+    assign filters_on = true
+  endif
+  assign sort_on = false
+  if section.settings.show_sort and collection.products_count > 1
+    assign sort_on = true
+  endif
+  assign has_active = false
+  for filter in collection.filters
+    if filter.type == 'price_range'
+      if filter.min_value.value != nil or filter.max_value.value != nil
+        assign has_active = true
+      endif
+    elsif filter.active_values.size > 0
+      assign has_active = true
+    endif
+  endfor
+  if collection.handle == 'all'
+    assign page_heading = 'collections.all_products' | t
+  else
+    assign page_heading = collection.title
+  endif
+  assign clear_url = collection.url
+  if collection.sort_by != collection.default_sort_by
+    assign clear_url = collection.url | append: '?sort_by=' | append: collection.sort_by
+  endif
+-%}
+
+<section
+  class="coll"
+  id="collection-{{ section.id }}"
+  data-section-id="{{ section.id }}"
+  data-section-type="main-collection"
+  style="--cols: {{ section.settings.columns }}"
+>
+  <nav class="coll__crumbs" aria-label="{{ 'general.breadcrumb' | t }}">
+    <ol>
+      <li><a href="{{ routes.root_url }}">{{ 'general.home' | t }}</a></li>
+      <li><span aria-current="page">{{ page_heading }}</span></li>
+    </ol>
+  </nav>
+
+  <header class="coll__head">
+    <h1 class="coll__title">{{ page_heading }}</h1>
+    {%- if section.settings.show_description and collection.description != blank %}
+      <div class="coll__desc rte">{{ collection.description }}</div>
+    {%- endif %}
+  </header>
+
+  <p class="visually-hidden" role="status" data-coll-status></p>
+
+  {%- paginate collection.products by section.settings.products_per_page -%}
+    <div data-coll-root data-status="{{ 'collections.products_updated' | t: count: collection.products_count }}">
+      <form class="coll__form" action="{{ collection.url }}" method="get" data-coll-form data-default-sort="{{ collection.default_sort_by }}">
+        <div class="coll__toolbar">
+          <p class="coll__count">
+            {%- if collection.products_count == 1 %}{{ 'collections.product_count_one' | t }}{% else %}{{ 'collections.product_count' | t: count: collection.products_count }}{% endif -%}
+          </p>
+          {%- if sort_on %}
+            <label class="coll__sort">
+              <span>{{ 'collections.sort_by' | t }}</span>
+              <select name="sort_by">
+                {%- for option in collection.sort_options %}
+                  <option value="{{ option.value }}"{% if option.value == collection.sort_by %} selected{% endif %}>{{ option.name }}</option>
+                {%- endfor %}
+              </select>
+            </label>
+          {%- endif %}
+          {%- if filters_on or sort_on %}
+            <button type="submit" class="coll__apply">{{ 'collections.apply' | t }}</button>
+          {%- endif %}
+        </div>
+
+        {%- if has_active %}
+          <ul class="coll__chips" role="list">
+            {%- for filter in collection.filters %}
+              {%- if filter.type == 'price_range' %}
+                {%- if filter.min_value.value != nil or filter.max_value.value != nil %}
+                  {%- assign chip_min = filter.min_value.value | default: 0 | money %}
+                  {%- assign chip_max = filter.max_value.value | default: filter.range_max | money %}
+                  <li><a class="coll__chip" href="{{ filter.url_to_remove }}" data-coll-link>{{ 'collections.price_chip' | t: min: chip_min, max: chip_max }}<span aria-hidden="true"> &times;</span><span class="visually-hidden"> ({{ 'collections.remove_filter' | t: label: filter.label }})</span></a></li>
+                {%- endif %}
+              {%- else %}
+                {%- for value in filter.active_values %}
+                  <li><a class="coll__chip" href="{{ value.url_to_remove }}" data-coll-link>{{ value.label }}<span aria-hidden="true"> &times;</span><span class="visually-hidden"> ({{ 'collections.remove_filter' | t: label: value.label }})</span></a></li>
+                {%- endfor %}
+              {%- endif %}
+            {%- endfor %}
+            <li><a class="coll__clear" href="{{ clear_url }}" data-coll-link>{{ 'collections.clear_all' | t }}</a></li>
+          </ul>
+        {%- endif %}
+
+        <div class="coll__layout{% if filters_on %} coll__layout--filters{% endif %}">
+          {%- if filters_on %}
+            <details class="coll__filters" open data-filters>
+              <summary class="coll__filters-toggle">{{ 'collections.filters' | t }}</summary>
+              <div class="coll__filters-body">
+                {%- for filter in collection.filters %}
+                  <details class="coll__group" open data-group="{{ filter.param_name | default: filter.label | handleize }}">
+                    <summary>{{ filter.label }}</summary>
+                    {%- if filter.type == 'price_range' %}
+                      {%- assign range_max = filter.range_max | money_without_currency | replace: ',', '' %}
+                      <div class="coll__price">
+                        <label>
+                          <span>{{ 'collections.price_min' | t }}</span>
+                          <input type="number" name="{{ filter.min_value.param_name }}" inputmode="decimal" min="0" max="{{ range_max }}" step="any" placeholder="0"
+                            value="{% if filter.min_value.value != nil %}{{ filter.min_value.value | money_without_currency | replace: ',', '' }}{% endif %}">
+                        </label>
+                        <label>
+                          <span>{{ 'collections.price_max' | t }}</span>
+                          <input type="number" name="{{ filter.max_value.param_name }}" inputmode="decimal" min="0" max="{{ range_max }}" step="any" placeholder="{{ range_max }}"
+                            value="{% if filter.max_value.value != nil %}{{ filter.max_value.value | money_without_currency | replace: ',', '' }}{% endif %}">
+                        </label>
+                      </div>
+                    {%- else %}
+                      <ul class="coll__values" role="list">
+                        {%- for value in filter.values %}
+                          <li>
+                            <label class="coll__check{% if value.count == 0 and value.active == false %} is-empty{% endif %}">
+                              <input type="checkbox" name="{{ value.param_name }}" value="{{ value.value }}"{% if value.active %} checked{% endif %}{% if value.count == 0 and value.active == false %} disabled{% endif %}>
+                              <span class="coll__box" aria-hidden="true"></span>
+                              <span class="coll__check-label">{{ value.label }}</span>
+                              <span class="coll__check-count">{{ value.count }}</span>
+                            </label>
+                          </li>
+                        {%- endfor %}
+                      </ul>
+                    {%- endif %}
+                  </details>
+                {%- endfor %}
+              </div>
+            </details>
+          {%- endif %}
+
+          <div class="coll__main">
+            {%- if collection.products.size > 0 %}
+              <ul class="coll__grid" role="list">
+                {%- for product in collection.products %}
+                  {%- assign card_loading = 'lazy' -%}
+                  {%- if forloop.index <= 4 %}{% assign card_loading = 'eager' %}{% endif -%}
+                  <li class="coll__cell">
+                    {%- render 'product-card', product: product, loading: card_loading, show_type: section.settings.show_type, image_fit: section.settings.image_fit -%}
+                  </li>
+                {%- endfor %}
+              </ul>
+
+              {%- if paginate.pages > 1 %}
+                <nav class="coll__pager" aria-label="{{ 'collections.pagination' | t }}">
+                  {%- if paginate.previous %}
+                    <a class="coll__page coll__page--arrow" href="{{ paginate.previous.url }}" rel="prev" data-coll-link aria-label="{{ 'collections.previous' | t }}">&larr;</a>
+                  {%- endif %}
+                  {%- for part in paginate.parts %}
+                    {%- if part.is_link %}
+                      <a class="coll__page" href="{{ part.url }}" data-coll-link aria-label="{{ 'collections.page' | t: number: part.title }}">{{ part.title }}</a>
+                    {%- elsif part.title == paginate.current_page %}
+                      <span class="coll__page is-current" aria-current="page">{{ part.title }}</span>
+                    {%- else %}
+                      <span class="coll__page coll__page--gap" aria-hidden="true">{{ part.title }}</span>
+                    {%- endif %}
+                  {%- endfor %}
+                  {%- if paginate.next %}
+                    <a class="coll__page coll__page--arrow" href="{{ paginate.next.url }}" rel="next" data-coll-link aria-label="{{ 'collections.next' | t }}">&rarr;</a>
+                  {%- endif %}
+                </nav>
+              {%- endif %}
+            {%- else %}
+              <div class="coll__empty">
+                <p class="coll__empty-title">{{ 'collections.empty_title' | t }}</p>
+                <p class="coll__empty-text">{% if has_active %}{{ 'collections.empty_filtered' | t }}{% else %}{{ 'collections.empty_text' | t }}{% endif %}</p>
+                {%- if has_active %}<a class="coll__clear coll__clear--btn" href="{{ clear_url }}" data-coll-link>{{ 'collections.clear_all' | t }}</a>{% endif %}
+              </div>
+            {%- endif %}
+          </div>
+        </div>
+      </form>
+    </div>
+
+    {%- comment -%} Structured data: the collection as an ItemList plus the breadcrumb trail. {%- endcomment -%}
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": {{ page_heading | json }},
+        "url": {{ shop.url | append: collection.url | json }},
+        "mainEntity": {
+          "@type": "ItemList",
+          "itemListElement": [
+            {%- for product in collection.products %}
+              {
+                "@type": "ListItem",
+                "position": {{ forloop.index | plus: paginate.current_offset | json }},
+                "url": {{ shop.url | append: product.url | json }},
+                "name": {{ product.title | json }}
+              }{% unless forloop.last %},{% endunless %}
+            {%- endfor %}
+          ]
+        }
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": {{ 'general.home' | t | json }}, "item": {{ shop.url | json }} },
+          { "@type": "ListItem", "position": 2, "name": {{ page_heading | json }}, "item": {{ shop.url | append: collection.url | json }} }
+        ]
+      }
+    </script>
+  {%- endpaginate -%}
+</section>
+
+<script src="{{ 'collection.js' | asset_url }}" type="module" defer></script>
+
+{% schema %}
+{
+  "name": "Collection",
+  "tag": "div",
+  "settings": [
+    { "type": "header", "content": "Grid" },
+    { "type": "range", "id": "columns", "label": "Columns on desktop", "min": 2, "max": 4, "step": 1, "default": 3 },
+    { "type": "range", "id": "products_per_page", "label": "Products per page", "min": 8, "max": 24, "step": 4, "default": 12 },
+    { "type": "select", "id": "image_fit", "label": "Photo fit", "default": "contain",
+      "options": [
+        { "value": "contain", "label": "Whole product on the light panel" },
+        { "value": "cover", "label": "Fill the frame" }
+      ]
+    },
+    { "type": "checkbox", "id": "show_type", "label": "Show product type", "default": true },
+    { "type": "header", "content": "Tools" },
+    { "type": "checkbox", "id": "show_description", "label": "Show collection description", "default": true },
+    { "type": "checkbox", "id": "show_sort", "label": "Show sorting", "default": true },
+    { "type": "checkbox", "id": "show_filters", "label": "Show filters", "info": "Set the filters up in Shopify's Search & Discovery app.", "default": true }
+  ]
+}
+{% endschema %}

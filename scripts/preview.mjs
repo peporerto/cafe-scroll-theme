@@ -1,6 +1,6 @@
 // Vista previa local SIN Shopify: renderiza el Liquid, sirve theme/assets y simula el carrito en memoria.  Uso: npm run preview
 import http from 'node:http'; import fs from 'node:fs'; import path from 'node:path';
-import { render, cartApi, renderCartSection } from './_render.mjs';
+import { render, cartApi, renderCartSection, renderCollectionSection } from './_render.mjs';
 const mime = { '.js':'text/javascript', '.css':'text/css', '.png':'image/png', '.jpg':'image/jpeg', '.webp':'image/webp', '.svg':'image/svg+xml' };
 const html = (r, body, code = 200) => { r.writeHead(code, {'Content-Type':'text/html; charset=utf-8'}); r.end(body); };
 const json = (r, body, code = 200) => { r.writeHead(code, {'Content-Type':'application/json'}); r.end(JSON.stringify(body)); };
@@ -21,6 +21,11 @@ http.createServer(async (q, r) => {
   try {
     if (p === '/') return html(r, await render('index'));
     if (p.startsWith('/products/')) return html(r, await render('product', { variant: u.searchParams.get('variant') }));
+    if (p.startsWith('/collections/') && q.method === 'GET') {
+      const handle = p.split('/')[2] || 'all'; const qs = new URLSearchParams(u.search); qs.delete('sections');
+      if (u.searchParams.get('sections')) { const o = {}; for (const id of u.searchParams.get('sections').split(',')) o[id] = await renderCollectionSection(id, handle, qs); return json(r, o); }
+      return html(r, await render('collection', { handle, query: qs }));
+    }
     if (p === '/cart' && q.method === 'GET') {
       if (u.searchParams.get('sections')) { const o = {}; for (const id of u.searchParams.get('sections').split(',')) o[id] = await renderCartSection(id); return json(r, o); }
       return html(r, await render('cart'));
@@ -44,4 +49,4 @@ http.createServer(async (q, r) => {
   } catch (e) { r.writeHead(500); return r.end(String(e.stack || e)); }
   const clean = p.replace(/\.\./g, ''); const f = clean.startsWith('/preview-images/') ? clean.slice(1) : path.join('theme', clean);
   fs.readFile(f, (e, d) => { if (e) { r.writeHead(404); return r.end('nf'); } r.writeHead(200, {'Content-Type': mime[path.extname(f)] || 'application/octet-stream', 'Cache-Control': 'no-store'}); r.end(d); });
-}).listen(3000, () => console.log('Abre http://localhost:3000 (home), /products/ethiopia-yirgacheffe (producto de prueba) o /cart (carrito de prueba en memoria; /__cart/reset lo vacia). Recarga tras npm run build'));
+}).listen(3000, () => console.log('Abre http://localhost:3000 (home), /products/ethiopia-yirgacheffe (producto de prueba) /collections/all (colecion de prueba con filtros) o /cart (carrito de prueba en memoria; /__cart/reset lo vacia). Recarga tras npm run build'));

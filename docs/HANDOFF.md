@@ -46,7 +46,7 @@ Actualizado: 2026-11-19. Para abrir una conversación nueva sin perder contexto.
 | Catálogo | Bien | Pared con 4 nichos; la luz se enciende con hover (escritorio) o al deslizar (móvil); sin foto dibuja una pared CSS |
 | Header / footer | Mínimos | Solo marca y menú; el footer está desactivado en la home; no hay carrito |
 
-Páginas existentes: `templates/index.json` (landing de impacto) y `templates/product.json` (página de producto, 2026-11-20) y `templates/cart.json` (carrito, 2026-11-20). Faltan collection, list-collections, page, blog, article, search, 404, password, gift_card.
+Páginas existentes: `templates/index.json` (landing de impacto) y `templates/product.json` (página de producto, 2026-11-20) `templates/cart.json` (carrito) y `templates/collection.json` (colección, 2026-11-22). Faltan list-collections, page, blog, article, search, 404, password, gift_card.
 
 ### Peso medido (build actual)
 
@@ -61,7 +61,7 @@ Páginas existentes: `templates/index.json` (landing de impacto) y `templates/pr
 
 Referencia: requisitos del Shopify Theme Store (https://shopify.dev/docs/storefronts/themes/store/requirements). No vamos a enviarlo al Theme Store, pero es la vara de un tema "de pago serio".
 
-### A. Plantillas obligatorias que faltan (hoy existen `index.json`, `product.json` y `cart.json`)
+### A. Plantillas obligatorias que faltan (hoy existen `index.json`, `product.json`, `cart.json` y `collection.json`)
 
 `product.json` (la más crítica: precio, variantes tamaño/molienda/tueste, agregar al carrito, galería), `cart.json`, `collection.json`, `list-collections.json`, `page.json`, `page.contact.json`, `blog.json`, `article.json`, `search.json`, `404.json`, `password.json`, `gift_card.liquid`, `settings_data.json`. Todas con soporte de secciones. Sección "Custom Liquid". Header y footer como section groups.
 
@@ -214,6 +214,7 @@ Documento: `Template_de__300_USD.html` (lo pasó Santiago). Muse asumió una pá
 - Galería: una columna editorial (2 por fila en escritorio, tira deslizable en móvil). `mix-blend-mode: multiply` mezcla fotos con fondo blanco sobre el panel de estudio (ajuste "Blend photo backgrounds").
 - Datos estructurados: Product con `structured_data` (oficial de Shopify) y BreadcrumbList.
 - Notas de cata: el campo del bloque se puede conectar a un metafield como fuente dinámica para que cambie por producto (sin conectar, todos los productos muestran el mismo texto).
+- Las variantes ya no se tachan por combinación: solo se tacha un valor agotado en TODAS las combinaciones; una combinación agotada deshabilita el botón y muestra un aviso (2026-11-22).
 - Vista previa local: `npm run preview` y abre `/products/ethiopia-yirgacheffe` (producto de prueba con 6 variantes, una agotada, y 2 planes de suscripción). Theme Check limpio.
 - Agregar al carrito: por Ajax (`/cart/add.js`), sin recargar: aviso "Added to cart · View cart" y contador del header. Sin JS cae al formulario normal (/cart/add). Falta sección de productos recomendados y de reseñas.
 
@@ -225,3 +226,13 @@ Documento: `Template_de__300_USD.html` (lo pasó Santiago). Muse asumió una pá
 - Muestra precio tachado y total de línea con descuento, plan de suscripción por línea, descuentos de carrito y estado vacío.
 - Vista previa local: `npm run preview` y abre `/cart`. El servidor simula en memoria la API de carrito de Shopify (`/cart.js`, `/cart/add.js`, `/cart/change.js`, `/cart/update.js`, `?sections=`); agrega desde el producto de prueba. `/__cart/reset` lo vacía. Probado: escritorio, celular 390 px (sin scroll horizontal), sin JS, Enter en cantidad, quitar, estado vacío y foco. Theme Check limpio.
 - Pendiente: carrito deslizable (drawer) opcional, barra de envío gratis, productos sugeridos en el carrito, botones de pago exprés (`additional_checkout_buttons`), campo de código de descuento (Shopify lo pide en checkout).
+
+## 12. Colección (hecha 2026-11-22)
+
+- Archivos: `theme/templates/collection.json`, `theme/sections/main-collection.liquid`, `theme/snippets/product-card.liquid` (reutilizable en búsqueda y recomendados), `theme/assets/collection.css`, `src/collection.js` (entrada propia).
+- Contenido: migas, título, descripción, conteo, orden (`collection.sort_options`), filtros de Storefront Filtering (`collection.filters`: lista, booleano y rango de precio), chips de filtros activos con "Clear all", cuadrícula 2 a 4 columnas, paginación (`{% paginate %}`, 8 a 24 por página), estado vacío, JSON-LD `CollectionPage` + `ItemList` + `BreadcrumbList`.
+- Tarjeta: panel claro "studio" como en producto, segunda foto al pasar el mouse (solo con hover real), insignias Sold out / Sale, "From" si el precio varía, enlace que cubre toda la tarjeta y foco visible. Ajuste `image_fit` (contain con multiply para fotos sobre blanco, o cover).
+- Sin JS: el formulario es un GET normal (aparece "Apply") y todos los enlaces son URLs reales. Con JS: filtros, orden y páginas se actualizan sin recargar con la API de renderizado (`?sections=`), mantienen el foco y los grupos abiertos, actualizan la URL (botón atrás funciona) y anuncian la cantidad. En celular los filtros van en un desplegable.
+- Los filtros solo aparecen si la tienda los configuró en la app Search & Discovery (si `collection.filters` está vacío, se oculta el panel).
+- Vista previa local: `/collections/all` (9 productos de prueba, 8 por página, filtros de disponibilidad, tipo y precio, 8 órdenes). El simulador incluye una etiqueta `paginate` propia. Probado: escritorio, celular 390 px, sin JS, atrás, vacío, paginación y hover. Theme Check limpio.
+- Pendiente: lista de colecciones (`list-collections.json`), búsqueda (reutilizará la tarjeta), reseñas y productos recomendados.
