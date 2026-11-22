@@ -84,7 +84,10 @@
 .pdp__pill:hover .pdp__pill-text { border-color: rgba(255, 255, 255, .35); }
 .pdp__pill input:checked + .pdp__pill-text { border-color: var(--color-accent); background: rgba(217, 164, 65, .12); color: var(--color-accent); }
 .pdp__pill input:focus-visible + .pdp__pill-text { outline: 2px solid var(--color-accent); outline-offset: 3px; }
+/* Struck out only when that value is sold out in EVERY combination; never because of what else is selected */
 .pdp__pill.is-soldout input:not(:checked) + .pdp__pill-text { color: var(--color-muted); text-decoration: line-through; border-style: dashed; }
+.pdp__combo-note { margin: .75rem 0 0; font-size: .88rem; color: var(--color-accent); }
+.pdp__combo-note[hidden] { display: none; }
 
 /* Subscription cards */
 .pdp__plans { margin: 0; padding: 0; border: 0; min-width: 0; display: grid; gap: .5rem; }

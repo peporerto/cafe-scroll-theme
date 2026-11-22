@@ -36,7 +36,8 @@
         "dark": "Dark roast"
       },
       "tasting_notes": "Tasting notes",
-      "unit_price_separator": "per"
+      "unit_price_separator": "per",
+      "combo_sold_out": "This combination is sold out. Try another size or grind."
     }
   },
   "cart": {

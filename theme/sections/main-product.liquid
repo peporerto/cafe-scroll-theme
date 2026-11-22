@@ -257,6 +257,7 @@
                       <span class="pdp__atc-price" data-atc-price{% unless current.available %} hidden{% endunless %}>{{ current.price | money }}</span>
                     </button>
                   </div>
+                  <p class="pdp__combo-note" role="status" data-combo-note hidden>{{ 'products.product.combo_sold_out' | t }}</p>
                   {%- if block.settings.show_dynamic_checkout %}
                     <div class="pdp__dynamic">{{ form | payment_button }}</div>
                   {%- endif %}

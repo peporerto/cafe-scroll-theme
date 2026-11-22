@@ -54,6 +54,7 @@ function init(root) {
   const barPrice = root.querySelector('[data-bar-price]');
   const barBtn = root.querySelector('[data-bar-atc]');
   const barLabel = root.querySelector('[data-bar-label]');
+  const comboNote = root.querySelector('[data-combo-note]');
   const hiddenId = form?.querySelector('input[name="id"]');
   const originalOrder = gallery ? [...gallery.children] : [];
 
@@ -79,20 +80,16 @@ function init(root) {
     return { cents, discounted: cents < v.cents };
   }
 
-  // An option value is struck out only when it can't be bought with the OTHER options currently chosen.
-  // The value you have picked is never struck out; the button tells you if that combination is sold out.
+  // A value is struck out only when it is sold out in every combination (nothing to buy with it at all).
+  // What you pick never depends on the other option: a sold-out combination is announced next to the button.
   function markAvailability() {
-    const opts = selected();
     groups.forEach((group, gi) => {
       group.querySelectorAll('.pdp__pill').forEach((pill) => {
-        const input = pill.querySelector('input');
-        const test = opts.slice();
-        test[gi] = input.value;
-        const v = findVariant(test);
-        const soldOut = !v || !v.available;
+        const value = pill.querySelector('input').value;
+        const soldOut = !data.variants.some((v) => v.options[gi] === value && v.available);
         pill.classList.toggle('is-soldout', soldOut);
         const state = pill.querySelector('[data-pill-state]');
-        if (state) state.textContent = soldOut ? ` (${v ? data.labels.soldOut : data.labels.unavailable})` : '';
+        if (state) state.textContent = soldOut ? ` (${data.labels.soldOut})` : '';
       });
     });
   }
@@ -134,6 +131,7 @@ function init(root) {
       if (was) compareEl.textContent = money(was);
     }
     if (unitEl && v) { unitEl.hidden = !v.unit || unit.discounted; unitEl.textContent = v.unit; }
+    if (comboNote) comboNote.hidden = !(v && !v.available);
     if (atc) atc.disabled = !can;
     if (atcLabel) atcLabel.textContent = quantity() > 1 && can ? `${label} · ${quantity()}` : label;
     if (atcPrice) { atcPrice.hidden = !can; atcPrice.textContent = total; }
