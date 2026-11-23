@@ -46,7 +46,7 @@ export function initStage() {
 
   // ── Scene + fog ───────────────────────────────────────────────────────────
   const scene = new Scene();
-  let fogColor = '#14110f';
+  let fogColor = '#120B07';
   try {
     const v = getComputedStyle(document.documentElement)
       .getPropertyValue('--color-bg')

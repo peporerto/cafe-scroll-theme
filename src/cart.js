@@ -3,6 +3,7 @@
  * Without this file the page still works: "Update cart" posts the form and "Check out" goes to checkout.
  */
 import { changeLine, updateNote, setCount } from './cart-api.js';
+import './depth.js';
 
 function init(section) {
   if (section.dataset.cartReady) return;

@@ -72,19 +72,20 @@
       },
       "block_order": [
         "title",
-        "price",
         "notes",
-        "roast",
+        "price",
         "variants",
         "plans",
         "buy",
         "trust",
+        "roast",
         "desc",
         "brew",
         "ship"
       ],
       "settings": {
-        "blend_images": true
+        "image_fit": "cover",
+        "show_leaves": true
       }
     }
   },

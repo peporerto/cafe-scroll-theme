@@ -1,0 +1,22 @@
+{%- comment -%}
+  Self-hosted variable fonts (SIL Open Font License, see docs/LICENSE-*.txt). Latin subset only; two files, about 78 KB.
+  Preloaded because the title and body copy are in the first screen.
+{%- endcomment -%}
+{{ 'font-display.woff2' | asset_url | preload_tag: as: 'font', type: 'font/woff2', crossorigin: '' }}
+{{ 'font-body.woff2' | asset_url | preload_tag: as: 'font', type: 'font/woff2', crossorigin: '' }}
+<style>
+  @font-face {
+    font-family: 'Bricolage Grotesque';
+    font-style: normal;
+    font-weight: 200 800;
+    font-display: swap;
+    src: url({{ 'font-display.woff2' | asset_url }}) format('woff2');
+  }
+  @font-face {
+    font-family: 'DM Sans';
+    font-style: normal;
+    font-weight: 100 1000;
+    font-display: swap;
+    src: url({{ 'font-body.woff2' | asset_url }}) format('woff2');
+  }
+</style>

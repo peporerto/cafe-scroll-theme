@@ -10,10 +10,10 @@
   {
     "name": "Colors",
     "settings": [
-      { "type": "color", "id": "color_bg", "label": "Background", "default": "#14110f" },
-      { "type": "color", "id": "color_text", "label": "Text", "default": "#f1ece4" },
-      { "type": "color", "id": "color_accent", "label": "Accent", "default": "#d9a441" },
-      { "type": "color", "id": "color_muted", "label": "Muted text", "default": "#b8b0a4" }
+      { "type": "color", "id": "color_bg", "label": "Background", "default": "#120B07" },
+      { "type": "color", "id": "color_text", "label": "Text", "default": "#FFF1DE" },
+      { "type": "color", "id": "color_accent", "label": "Accent", "default": "#E8603F" },
+      { "type": "color", "id": "color_muted", "label": "Muted text", "default": "#E6D5BD" }
     ]
   },
   {

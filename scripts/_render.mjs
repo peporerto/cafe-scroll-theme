@@ -18,6 +18,7 @@ const kwargs = (args)=>{ const a={}; for(const x of args) if(Array.isArray(x)) a
 const cents = (v)=> '$'+(Number(v)/100).toFixed(2);
 engine.registerFilter('asset_url', v=>'/assets/'+v);
 engine.registerFilter('stylesheet_tag', u=>`<link rel="stylesheet" href="${u}">`);
+engine.registerFilter('preload_tag', (u,...args)=>{ const a=kwargs(args); return `<link rel="preload" href="${u}" as="${a.as||'style'}"${a.type?` type="${a.type}"`:''}${a.as==='font'?' crossorigin':''}>`; });
 engine.registerFilter('t', function(k,...args){ return translate(k, kwargs(args)); });
 engine.registerFilter('image_url', v=> (v && typeof v==='object') ? (v.src || v.preview_image?.src) : v);
 engine.registerFilter('image_tag', (url,...args)=>{ const a=kwargs(args); return `<img src="${url}" class="${a.class||''}" loading="${a.loading||'lazy'}" ${a.fetchpriority&&a.fetchpriority!=='auto'?`fetchpriority="${a.fetchpriority}"`:''} alt="${a.alt||''}">`; });
@@ -247,8 +248,9 @@ export async function render(kind='index', opts={}){
   if (kind==='collection') extra = collectionExtra(opts.handle||'all', opts.query);
   const request = extra.request || {...REQUEST, page_type: kind};
   // the demo photos are lifestyle shots (not product shots on white), so the preview fills the frame and skips the blend
-  if (kind==='product') tpl.sections.main.settings={...tpl.sections.main.settings, blend_images:false, image_fit:'cover'};
-  if (kind==='collection') tpl.sections.main.settings={...tpl.sections.main.settings, image_fit:'cover', products_per_page:8};
+  if (kind==='product') tpl.sections.main.settings={...tpl.sections.main.settings, image_fit:'cover', scene_image:{src:'/preview-images/hero-far.jpg',width:1376,height:768}};
+  if (kind==='collection') tpl.sections.main.settings={...tpl.sections.main.settings, image_fit:'cover', products_per_page:8, scene_image:{src:'/preview-images/hero-far.jpg',width:1376,height:768}};
+  if (kind==='cart') tpl.sections.main.settings={...tpl.sections.main.settings, scene_image:{src:'/preview-images/hero-open.jpg',width:1672,height:941}};
   let main=''; for(const id of tpl.order){ main+=await renderSection(tpl.sections[id].type,id,tpl.sections[id],{...extra,request});}
   let layout=fs.readFileSync(path.join(T,'layout/theme.liquid'),'utf8');
   const header=await renderSection('header','header'), footer=await renderSection('footer','footer');

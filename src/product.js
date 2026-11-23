@@ -5,9 +5,7 @@
  */
 
 import { addToCart, getCart, setCount, toast } from './cart-api.js';
-
-const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-const isPhone = window.matchMedia('(max-width: 899px)');
+import './depth.js';
 
 // Same formats as Shopify's money_format setting, so the total matches what the store shows.
 function formatMoney(cents, format) {
@@ -43,6 +41,7 @@ function init(root) {
   const select = root.querySelector('[data-variant-select]');
   const groups = [...root.querySelectorAll('[data-option-index]')];
   const gallery = root.querySelector('.pdp__gallery');
+  const card = root.querySelector('[data-hero-card]');
   const priceEl = root.querySelector('[data-price]');
   const compareEl = root.querySelector('[data-compare]');
   const unitEl = root.querySelector('[data-unit]');
@@ -56,7 +55,6 @@ function init(root) {
   const barLabel = root.querySelector('[data-bar-label]');
   const comboNote = root.querySelector('[data-combo-note]');
   const hiddenId = form?.querySelector('input[name="id"]');
-  const originalOrder = gallery ? [...gallery.children] : [];
 
   root.classList.add('pdp--js');
   const optionsEl = root.querySelector('[data-options]');
@@ -94,18 +92,23 @@ function init(root) {
     });
   }
 
-  // Show the variant's photo without moving the page: desktop puts it first, phones slide the strip to it
+  // The bag floating in the scene shows the variant's photo; the gallery below keeps the full set.
+  // The photo is taken from the gallery (same file, already loaded or cached), cross-faded.
   function showMedia(v) {
-    if (!gallery || !v || !v.media) return;
-    const fig = gallery.querySelector(`[data-media-id="${v.media}"]`);
-    if (!fig) return;
-    if (isPhone.matches) {
-      const pad = parseFloat(getComputedStyle(gallery).paddingLeft) || 0;
-      const delta = fig.getBoundingClientRect().left - gallery.getBoundingClientRect().left - pad;
-      gallery.scrollBy({ left: delta, behavior: reduceMotion.matches ? 'auto' : 'smooth' });
-    } else if (gallery.firstElementChild !== fig) {
-      gallery.replaceChildren(fig, ...originalOrder.filter((el) => el !== fig));
-    }
+    if (!card || !gallery || !v || !v.media || card.dataset.mediaId === String(v.media)) return;
+    const src = gallery.querySelector(`[data-media-id="${v.media}"] img`);
+    const img = card.querySelector('img');
+    if (!src || !img) return;
+    card.dataset.mediaId = String(v.media);
+    card.classList.add('is-swapping');
+    setTimeout(() => {
+      img.removeAttribute('srcset');
+      if (src.srcset) img.srcset = src.srcset;
+      img.src = src.currentSrc || src.src;
+      img.alt = src.alt;
+      const done = () => card.classList.remove('is-swapping');
+      if (img.complete) done(); else { img.addEventListener('load', done, { once: true }); img.addEventListener('error', done, { once: true }); }
+    }, 180);
   }
 
   function update({ media }) {

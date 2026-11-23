@@ -3,6 +3,8 @@
  * Without this file the page still works: the form is a plain GET (the "Apply" button shows) and every link is a real URL.
  */
 
+import './depth.js';
+
 const phone = window.matchMedia('(max-width: 899px)');
 
 function formUrl(form) {

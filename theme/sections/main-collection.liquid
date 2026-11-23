@@ -1,3 +1,4 @@
+{{ 'scene.css' | asset_url | stylesheet_tag }}
 {{ 'collection.css' | asset_url | stylesheet_tag }}
 
 {%- liquid
@@ -31,12 +32,31 @@
 -%}
 
 <section
-  class="coll"
+  class="coll scene scene--band"
+  data-depth-scene
   id="collection-{{ section.id }}"
   data-section-id="{{ section.id }}"
   data-section-type="main-collection"
   style="--cols: {{ section.settings.columns }}"
 >
+  <div class="scene__band" aria-hidden="true">
+    {%- if section.settings.scene_image != blank %}
+      {{
+        section.settings.scene_image
+        | image_url: width: 2000
+        | image_tag: class: 'scene__bg layer', loading: 'eager', widths: '1000,1500,2000', sizes: '100vw', alt: ''
+      }}
+    {%- else %}
+      <div class="scene__bg scene__bg--empty layer"></div>
+    {%- endif %}
+    <div class="scene__fog layer"></div>
+    <div class="scene__fade"></div>
+    {%- if section.settings.show_leaves %}
+      {%- render 'scene-leaves' %}
+    {%- endif %}
+  </div>
+
+  <div class="coll__inner">
   <nav class="coll__crumbs" aria-label="{{ 'general.breadcrumb' | t }}">
     <ol>
       <li><a href="{{ routes.root_url }}">{{ 'general.home' | t }}</a></li>
@@ -44,7 +64,7 @@
     </ol>
   </nav>
 
-  <header class="coll__head">
+  <header class="coll__head layer">
     <h1 class="coll__title">{{ page_heading }}</h1>
     {%- if section.settings.show_description and collection.description != blank %}
       <div class="coll__desc rte">{{ collection.description }}</div>
@@ -212,6 +232,7 @@
       }
     </script>
   {%- endpaginate -%}
+  </div>
 </section>
 
 <script src="{{ 'collection.js' | asset_url }}" type="module" defer></script>
@@ -221,13 +242,16 @@
   "name": "Collection",
   "tag": "div",
   "settings": [
+    { "type": "header", "content": "Scene" },
+    { "type": "image_picker", "id": "scene_image", "label": "Background photo", "info": "A wide, dark-ish lifestyle photo. It is darkened and moves slowly behind the title. Leave empty for a warm gradient." },
+    { "type": "checkbox", "id": "show_leaves", "label": "Show the branches in front of the scene", "default": true },
     { "type": "header", "content": "Grid" },
     { "type": "range", "id": "columns", "label": "Columns on desktop", "min": 2, "max": 4, "step": 1, "default": 3 },
     { "type": "range", "id": "products_per_page", "label": "Products per page", "min": 8, "max": 24, "step": 4, "default": 12 },
-    { "type": "select", "id": "image_fit", "label": "Photo fit", "default": "contain",
+    { "type": "select", "id": "image_fit", "label": "Photo fit", "default": "cover",
       "options": [
-        { "value": "contain", "label": "Whole product on the light panel" },
-        { "value": "cover", "label": "Fill the frame" }
+        { "value": "cover", "label": "Fill the frame" },
+        { "value": "contain", "label": "Whole product (photos on a plain background)" }
       ]
     },
     { "type": "checkbox", "id": "show_type", "label": "Show product type", "default": true },

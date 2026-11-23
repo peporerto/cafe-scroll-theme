@@ -17,6 +17,7 @@
 
     {%- comment -%}LCP hero image priority handled via fetchpriority="high" in sections/hero.liquid{%- endcomment -%}
 
+    {% render 'fonts' %}
     {% render 'css-variables' %}
     {{ 'base.css' | asset_url | stylesheet_tag }}
 

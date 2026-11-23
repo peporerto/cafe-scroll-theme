@@ -1,3 +1,4 @@
+{{ 'scene.css' | asset_url | stylesheet_tag }}
 {{ 'product.css' | asset_url | stylesheet_tag }}
 {%- liquid
   assign current = product.selected_or_first_available_variant
@@ -12,284 +13,125 @@
   if crumb_collection == blank
     assign crumb_collection = product.collections.first
   endif
+
+  comment
+    Three zones: the headline (title + tasting notes), the buy panel (everything you decide with) and the rest below the scene.
+    The order of blocks in the theme editor decides the order inside each zone.
+  endcomment
+  assign zone_head = 'title,tasting_notes' | split: ','
+  assign zone_panel = 'price,variant_picker,selling_plan,buy_buttons,trust_row,@app' | split: ','
+  assign zone_below = 'roast_scale,description,accordion' | split: ','
+
+  assign card_media = product.featured_media
+  if current.featured_media != blank
+    for m in product.media
+      if m.id == current.featured_media.id
+        assign card_media = m
+      endif
+    endfor
+  endif
 -%}
 
 <section
-  class="pdp"
+  class="pdp{% if section.settings.image_fit == 'contain' %} pdp--contain{% endif %}"
   id="pdp-{{ section.id }}"
   data-section-id="{{ section.id }}"
   data-section-type="main-product"
   data-form-id="{{ form_id }}"
 >
-  <nav class="pdp__crumbs" aria-label="{{ 'general.breadcrumb' | t }}">
-    <ol>
-      <li><a href="{{ routes.root_url }}">{{ 'general.home' | t }}</a></li>
-      {%- if crumb_collection != blank %}
-        <li><a href="{{ crumb_collection.url }}">{{ crumb_collection.title }}</a></li>
-      {%- endif %}
-      <li><span aria-current="page">{{ product.title }}</span></li>
-    </ol>
-  </nav>
+  <div class="pdp__scene scene" data-depth-scene>
+    {%- if section.settings.scene_image != blank %}
+      {{
+        section.settings.scene_image
+        | image_url: width: 2400
+        | image_tag:
+          class: 'scene__bg layer',
+          loading: 'eager',
+          fetchpriority: 'high',
+          widths: '1200,1800,2400',
+          sizes: '100vw',
+          alt: ''
+      }}
+    {%- else %}
+      <div class="scene__bg scene__bg--empty layer" aria-hidden="true"></div>
+    {%- endif %}
+    <div class="scene__fog layer" aria-hidden="true"></div>
+    <div class="scene__fade" aria-hidden="true"></div>
 
-  <div class="pdp__grid">
-    {%- comment -%}
-      Gallery: one editorial column. Photos are stacked (2 per row) on desktop and become a swipe strip on phones.
-      Without JavaScript it is all plain HTML.
-    {%- endcomment -%}
-    <ul
-      class="pdp__gallery{% if section.settings.blend_images %} pdp__gallery--blend{% endif %}{% if section.settings.image_fit == 'cover' %} pdp__gallery--cover{% endif %}"
-      role="list"
-      aria-label="{{ 'products.product.gallery' | t }}"
-    >
-      {%- for media in product.media %}
-        {%- liquid
-          assign img_loading = 'lazy'
-          assign img_priority = 'auto'
-          if forloop.first
-            assign img_loading = 'eager'
-            assign img_priority = 'high'
-          endif
-        -%}
-        <li class="pdp__media" id="media-{{ section.id }}-{{ media.id }}" data-media-id="{{ media.id }}">
-          {%- if media.media_type == 'image' %}
-            {{
-              media
-              | image_url: width: 1600
-              | image_tag:
-                class: 'pdp__img',
-                loading: img_loading,
-                fetchpriority: img_priority,
-                widths: '480,720,960,1280,1600',
-                sizes: '(min-width: 900px) 52vw, 86vw',
-                alt: media.alt
-            }}
-          {%- else %}
+    <nav class="pdp__crumbs scene__content" aria-label="{{ 'general.breadcrumb' | t }}">
+      <ol>
+        <li><a href="{{ routes.root_url }}">{{ 'general.home' | t }}</a></li>
+        {%- if crumb_collection != blank %}
+          <li><a href="{{ crumb_collection.url }}">{{ crumb_collection.title }}</a></li>
+        {%- endif %}
+        <li><span aria-current="page">{{ product.title }}</span></li>
+      </ol>
+    </nav>
+
+    {%- comment -%} The photo of the selected variant, floating over the scene. JS swaps it when the variant changes. {%- endcomment -%}
+    {%- if card_media != blank %}
+      <figure class="pdp__card layer" data-hero-card data-media-id="{{ card_media.id }}">
+        {{
+          card_media.preview_image
+          | image_url: width: 900
+          | image_tag:
+            class: 'pdp__card-img',
+            loading: 'eager',
+            fetchpriority: 'high',
+            widths: '360,540,720,900',
+            sizes: '(min-width: 900px) 21vw, 62vw',
+            alt: card_media.alt
+        }}
+      </figure>
+    {%- endif %}
+
+    <div class="pdp__headline layer scene__content">
+      {%- for block in section.blocks %}
+        {%- if zone_head contains block.type %}
+          {%- render 'pdp-block', block: block, section_id: section.id, form_id: form_id, has_picker: has_picker, current: current, product: product %}
+        {%- endif %}
+      {%- endfor %}
+    </div>
+
+    <div class="pdp__panel layer scene__content">
+      {%- for block in section.blocks %}
+        {%- if zone_panel contains block.type %}
+          {%- render 'pdp-block', block: block, section_id: section.id, form_id: form_id, has_picker: has_picker, current: current, product: product %}
+        {%- endif %}
+      {%- endfor %}
+    </div>
+
+    {%- if section.settings.show_leaves %}
+      {%- render 'scene-leaves' %}
+    {%- endif %}
+  </div>
+
+  <div class="pdp__below{% if product.media.size < 2 %} pdp__below--solo{% endif %}">
+    {%- if product.media.size > 1 %}
+      <ul class="pdp__gallery" role="list" aria-label="{{ 'products.product.gallery' | t }}">
+        {%- for media in product.media %}
+          <li class="pdp__media" id="media-{{ section.id }}-{{ media.id }}" data-media-id="{{ media.id }}">
             {{
               media.preview_image
-              | image_url: width: 1600
+              | image_url: width: 1400
               | image_tag:
                 class: 'pdp__img',
                 loading: 'lazy',
-                widths: '480,720,960,1280,1600',
-                sizes: '(min-width: 900px) 52vw, 86vw',
+                widths: '480,720,960,1280',
+                sizes: '(min-width: 900px) 34vw, 46vw',
                 alt: media.alt
             }}
-          {%- endif %}
-        </li>
-      {%- else %}
-        <li class="pdp__media pdp__media--empty"><span>{{ 'products.product.no_image' | t }}</span></li>
-      {%- endfor %}
-    </ul>
-
-    <div class="pdp__info">
-      <div class="pdp__info-inner">
-        {%- for block in section.blocks %}
-          {%- case block.type %}
-
-            {%- when '@app' %}
-              <div class="pdp__block" {{ block.shopify_attributes }}>{% render block %}</div>
-
-            {%- when 'title' %}
-              <header class="pdp__block pdp__head" {{ block.shopify_attributes }}>
-                {%- if block.settings.show_eyebrow and product.type != blank %}
-                  <p class="pdp__eyebrow">{{ product.type }}</p>
-                {%- endif %}
-                <h1 class="pdp__title">{{ product.title }}</h1>
-              </header>
-
-            {%- when 'price' %}
-              <div class="pdp__block pdp__price" data-price-wrap aria-live="polite" {{ block.shopify_attributes }}>
-                <span class="pdp__price-now" data-price>{{ current.price | money }}</span>
-                <s class="pdp__price-was" data-compare{% unless current.compare_at_price > current.price %} hidden{% endunless %}>{{ current.compare_at_price | money }}</s>
-                <span class="pdp__unit" data-unit{% unless current.unit_price_measurement %} hidden{% endunless %}>
-                  {%- if current.unit_price_measurement %}{{ current.unit_price | unit_price_with_measurement: current.unit_price_measurement }}{% endif -%}
-                </span>
-              </div>
-
-            {%- when 'tasting_notes' %}
-              {%- assign notes = block.settings.notes | split: ',' %}
-              {%- if notes.size > 0 and block.settings.notes != blank %}
-                <div class="pdp__block pdp__notes" {{ block.shopify_attributes }}>
-                  <h2 class="pdp__label">
-                    {%- if block.settings.heading != blank %}{{ block.settings.heading }}{% else %}{{ 'products.product.tasting_notes' | t }}{% endif -%}
-                  </h2>
-                  <ul role="list">
-                    {%- for note in notes %}
-                      <li>{{ note | strip }}</li>
-                    {%- endfor %}
-                  </ul>
-                </div>
-              {%- endif %}
-
-            {%- when 'roast_scale' %}
-              {%- assign level = block.settings.level | default: 3 %}
-              {%- case level %}
-                {%- when 1 %}{% assign roast_name = 'products.product.roast_levels.light' | t %}
-                {%- when 2 %}{% assign roast_name = 'products.product.roast_levels.medium_light' | t %}
-                {%- when 4 %}{% assign roast_name = 'products.product.roast_levels.medium_dark' | t %}
-                {%- when 5 %}{% assign roast_name = 'products.product.roast_levels.dark' | t %}
-                {%- else %}{% assign roast_name = 'products.product.roast_levels.medium' | t %}
-              {%- endcase %}
-              <div class="pdp__block pdp__roast" data-roast {{ block.shopify_attributes }}>
-                <h2 class="pdp__label">
-                  {{ 'products.product.roast' | t }}
-                  <span class="pdp__roast-name">{{ roast_name }}</span>
-                </h2>
-                <div class="pdp__roast-track" role="img" aria-label="{{ roast_name }}">
-                  {%- for i in (1..5) %}
-                    <span class="pdp__roast-seg pdp__roast-seg--{{ i }}{% if i <= level %} is-on{% endif %}" style="--i: {{ forloop.index0 }}"></span>
-                  {%- endfor %}
-                </div>
-                <p class="pdp__roast-ends" aria-hidden="true"><span>{{ 'products.product.roast_light' | t }}</span><span>{{ 'products.product.roast_dark' | t }}</span></p>
-              </div>
-
-            {%- when 'variant_picker' %}
-              {%- unless product.has_only_default_variant %}
-                <div class="pdp__block pdp__variants" data-variant-picker {{ block.shopify_attributes }}>
-                  {%- comment -%} Works without JS: a plain select that submits the variant id. JS hides it and shows the pills. {%- endcomment -%}
-                  <label class="pdp__fallback">
-                    <span class="pdp__label">{{ 'products.product.variant' | t }}</span>
-                    <select name="id" form="{{ form_id }}" data-variant-select>
-                      {%- for variant in product.variants %}
-                        <option value="{{ variant.id }}"{% if variant.id == current.id %} selected{% endif %}{% unless variant.available %} disabled{% endunless %}>
-                          {{- variant.title | escape }} · {{ variant.price | money -}}
-                          {%- unless variant.available %} ({{ 'products.product.sold_out' | t }}){% endunless -%}
-                        </option>
-                      {%- endfor %}
-                    </select>
-                  </label>
-
-                  <div class="pdp__options" hidden data-options>
-                    {%- for option in product.options_with_values %}
-                      <fieldset class="pdp__option" data-option-index="{{ forloop.index0 }}">
-                        <legend class="pdp__label">
-                          {{ option.name }}
-                          <span class="pdp__option-value" data-option-value>{{ option.selected_value }}</span>
-                        </legend>
-                        <div class="pdp__pills">
-                          {%- for value in option.values %}
-                            <label class="pdp__pill">
-                              <input
-                                type="radio"
-                                name="option-{{ section.id }}-{{ option.position }}"
-                                value="{{ value | escape }}"
-                                {% if option.selected_value == value %}checked{% endif %}
-                              >
-                              <span class="pdp__pill-text">{{ value }}</span>
-                              <span class="visually-hidden pdp__pill-state" data-pill-state></span>
-                            </label>
-                          {%- endfor %}
-                        </div>
-                      </fieldset>
-                    {%- endfor %}
-                  </div>
-                </div>
-              {%- endunless %}
-
-            {%- when 'selling_plan' %}
-              {%- if product.selling_plan_groups.size > 0 %}
-                <fieldset class="pdp__block pdp__plans" data-selling-plans {{ block.shopify_attributes }}>
-                  <legend class="pdp__label">{{ 'products.product.delivery' | t }}</legend>
-                  <label class="pdp__plan">
-                    <input type="radio" name="selling_plan" value="" form="{{ form_id }}" checked>
-                    <span class="pdp__plan-body"><span class="pdp__plan-name">{{ 'products.product.one_time' | t }}</span></span>
-                  </label>
-                  {%- for group in product.selling_plan_groups %}
-                    {%- for plan in group.selling_plans %}
-                      <label class="pdp__plan">
-                        {%- assign adj = plan.price_adjustments.first %}
-                        <input
-                          type="radio"
-                          name="selling_plan"
-                          value="{{ plan.id }}"
-                          form="{{ form_id }}"
-                          data-adjust-type="{{ adj.value_type }}"
-                          data-adjust-value="{{ adj.value }}"
-                        >
-                        <span class="pdp__plan-body">
-                          <span class="pdp__plan-name">{{ group.name }} · {{ plan.name }}</span>
-                          {%- if adj.value_type == 'percentage' %}
-                            <span class="pdp__plan-save">{{ 'products.product.save_percent' | t: value: adj.value }}</span>
-                          {%- elsif adj.value_type == 'fixed_amount' %}
-                            {%- assign saving = adj.value | money %}
-                            <span class="pdp__plan-save">{{ 'products.product.save_amount' | t: value: saving }}</span>
-                          {%- endif %}
-                        </span>
-                      </label>
-                    {%- endfor %}
-                  {%- endfor %}
-                </fieldset>
-              {%- endif %}
-
-            {%- when 'buy_buttons' %}
-              <div class="pdp__block pdp__buy-wrap" {{ block.shopify_attributes }}>
-                {%- form 'product', product, id: form_id, class: 'pdp__form', novalidate: 'novalidate' %}
-                  {%- unless has_picker %}
-                    <input type="hidden" name="id" value="{{ current.id }}">
-                  {%- endunless %}
-                  <div class="pdp__buy">
-                    {%- if block.settings.show_quantity %}
-                      <div class="pdp__qty">
-                        <button type="button" class="pdp__qty-btn" data-qty-minus aria-label="{{ 'products.product.quantity_decrease' | t }}">&minus;</button>
-                        <input
-                          class="pdp__qty-input"
-                          type="number"
-                          name="quantity"
-                          value="1"
-                          min="1"
-                          inputmode="numeric"
-                          aria-label="{{ 'products.product.quantity' | t }}"
-                          data-qty-input
-                        >
-                        <button type="button" class="pdp__qty-btn" data-qty-plus aria-label="{{ 'products.product.quantity_increase' | t }}">+</button>
-                      </div>
-                    {%- endif %}
-                    <button
-                      type="submit"
-                      name="add"
-                      class="pdp__atc"
-                      data-atc
-                      {% unless current.available %}disabled{% endunless %}
-                    >
-                      <span data-atc-label>
-                        {%- if current.available %}{{ 'products.product.add_to_cart' | t }}{% else %}{{ 'products.product.sold_out' | t }}{% endif -%}
-                      </span>
-                      <span class="pdp__atc-price" data-atc-price{% unless current.available %} hidden{% endunless %}>{{ current.price | money }}</span>
-                    </button>
-                  </div>
-                  <p class="pdp__combo-note" role="status" data-combo-note hidden>{{ 'products.product.combo_sold_out' | t }}</p>
-                  {%- if block.settings.show_dynamic_checkout %}
-                    <div class="pdp__dynamic">{{ form | payment_button }}</div>
-                  {%- endif %}
-                {%- endform %}
-              </div>
-
-            {%- when 'trust_row' %}
-              <ul class="pdp__block pdp__trust" role="list" {{ block.shopify_attributes }}>
-                {%- for i in (1..3) %}
-                  {%- assign key = 'text_' | append: i %}
-                  {%- if block.settings[key] != blank %}
-                    <li>{{ block.settings[key] }}</li>
-                  {%- endif %}
-                {%- endfor %}
-              </ul>
-
-            {%- when 'description' %}
-              {%- if product.description != blank %}
-                <div class="pdp__block pdp__desc rte" {{ block.shopify_attributes }}>{{ product.description }}</div>
-              {%- endif %}
-
-            {%- when 'accordion' %}
-              {%- if block.settings.content != blank %}
-                <details class="pdp__block pdp__acc" {% if block.settings.open %}open{% endif %} {{ block.shopify_attributes }}>
-                  <summary>{{ block.settings.heading }}</summary>
-                  <div class="pdp__acc-body rte">{{ block.settings.content }}</div>
-                </details>
-              {%- endif %}
-
-          {%- endcase %}
+          </li>
         {%- endfor %}
-      </div>
+      </ul>
+    {%- endif %}
+
+    <div class="pdp__more">
+      {%- for block in section.blocks %}
+        {%- if zone_below contains block.type %}
+          {%- render 'pdp-block', block: block, section_id: section.id, form_id: form_id, has_picker: has_picker, current: current, product: product %}
+        {%- endif %}
+      {%- endfor %}
     </div>
   </div>
 
@@ -362,17 +204,18 @@
   "name": "Product",
   "tag": "div",
   "settings": [
+    { "type": "image_picker", "id": "scene_image", "label": "Scene background photo", "info": "A wide, dark-ish lifestyle photo (plantation, hillside). It is darkened and moves slowly behind the bag. Leave empty for a warm gradient." },
+    { "type": "checkbox", "id": "show_leaves", "label": "Show the branches in front of the scene", "default": true },
     {
       "type": "select",
       "id": "image_fit",
       "label": "Photo fit",
       "options": [
-        { "value": "contain", "label": "Show the whole photo (product on a plain background)" },
-        { "value": "cover", "label": "Fill the frame (lifestyle photos)" }
+        { "value": "cover", "label": "Fill the frame (lifestyle photos)" },
+        { "value": "contain", "label": "Show the whole photo (product on a plain background)" }
       ],
-      "default": "contain"
-    },
-    { "type": "checkbox", "id": "blend_images", "label": "Blend photo backgrounds into the studio panel", "default": true, "info": "Works for photos shot on a white or light grey background. Turn off for lifestyle photos." }
+      "default": "cover"
+    }
   ],
   "blocks": [
     { "type": "@app" },
