@@ -1,0 +1,75 @@
+{{ 'extras.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign total = 0
+  assign counted = 0
+  for block in section.blocks
+    if block.type == 'review'
+      assign total = total | plus: block.settings.rating
+      assign counted = counted | plus: 1
+    endif
+  endfor
+  if counted > 0
+    assign average = total | times: 1.0 | divided_by: counted | round: 1
+  endif
+-%}
+<section class="xs reviews" data-section-id="{{ section.id }}">
+  <div class="xs__inner">
+    <header class="reviews__head">
+      <h2 class="xs__title">{{ section.settings.heading }}</h2>
+      {%- if counted > 0 and section.settings.show_average %}
+        <p class="reviews__avg">
+          <span class="reviews__num">{{ average }}</span>
+          {%- render 'stars', rating: average %}
+          <span class="reviews__count">
+            {%- if counted == 1 %}{{ 'reviews.count_one' | t }}{% else %}{{ 'reviews.count' | t: count: counted }}{% endif -%}
+          </span>
+        </p>
+      {%- endif %}
+    </header>
+
+    <ul class="reviews__grid" role="list">
+      {%- for block in section.blocks %}
+        {%- case block.type %}
+          {%- when 'review' %}
+            <li class="review" {{ block.shopify_attributes }}>
+              {%- render 'stars', rating: block.settings.rating %}
+              {%- if block.settings.title != blank %}<h3 class="review__title">{{ block.settings.title }}</h3>{% endif %}
+              <p class="review__text">{{ block.settings.text }}</p>
+              <p class="review__who"><strong>{{ block.settings.author }}</strong>{% if block.settings.detail != blank %} · {{ block.settings.detail }}{% endif %}</p>
+            </li>
+          {%- when '@app' %}
+            <li class="review review--app">{% render block %}</li>
+        {%- endcase %}
+      {%- endfor %}
+    </ul>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Reviews",
+  "settings": [
+    { "type": "paragraph", "content": "These are reviews you add by hand. Only publish real reviews from real customers. To use a reviews app, add its app block here." },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "What people say" },
+    { "type": "checkbox", "id": "show_average", "label": "Show the average rating", "default": true }
+  ],
+  "blocks": [
+    {
+      "type": "review",
+      "name": "Review",
+      "settings": [
+        { "type": "range", "id": "rating", "label": "Stars", "min": 1, "max": 5, "step": 1, "default": 5 },
+        { "type": "text", "id": "title", "label": "Title" },
+        { "type": "textarea", "id": "text", "label": "Review", "default": "Replace with a real customer review." },
+        { "type": "text", "id": "author", "label": "Name", "default": "Customer name" },
+        { "type": "text", "id": "detail", "label": "Detail", "info": "For example: Verified buyer, Toronto.", "default": "Verified buyer" }
+      ]
+    },
+    { "type": "@app" }
+  ],
+  "presets": [
+    { "name": "Reviews", "blocks": [ { "type": "review" }, { "type": "review" }, { "type": "review" } ] }
+  ]
+}
+{% endschema %}

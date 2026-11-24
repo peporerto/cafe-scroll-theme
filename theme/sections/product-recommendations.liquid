@@ -1,0 +1,33 @@
+{{ 'collection.css' | asset_url | stylesheet_tag }}
+{{ 'extras.css' | asset_url | stylesheet_tag }}
+
+<section
+  class="xs recs"
+  data-recs
+  data-url="{{ routes.product_recommendations_url }}?section_id={{ section.id }}&product_id={{ product.id }}&limit={{ section.settings.limit }}&intent=related"
+>
+  {%- if recommendations.performed and recommendations.products_count > 0 %}
+    <div class="xs__inner">
+      <h2 class="xs__title">{{ section.settings.heading }}</h2>
+      <ul class="recs__grid" role="list">
+        {%- for item in recommendations.products %}
+          <li>{% render 'product-card', product: item, loading: 'lazy', show_type: true, image_fit: section.settings.image_fit %}</li>
+        {%- endfor %}
+      </ul>
+    </div>
+  {%- endif %}
+</section>
+
+<script src="{{ 'extras.js' | asset_url }}" type="module" defer></script>
+
+{% schema %}
+{
+  "name": "Related products",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "You might also like" },
+    { "type": "range", "id": "limit", "label": "Products to show", "min": 2, "max": 8, "step": 1, "default": 4 },
+    { "type": "select", "id": "image_fit", "label": "Photo fit", "options": [ { "value": "cover", "label": "Fill the frame" }, { "value": "contain", "label": "Show the whole photo" } ], "default": "cover" }
+  ],
+  "presets": [ { "name": "Related products" } ]
+}
+{% endschema %}

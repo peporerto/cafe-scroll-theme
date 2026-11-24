@@ -202,5 +202,19 @@
     "social": "Follow us",
     "payment": "Payment methods",
     "copyright": "© {{ year }} {{ shop }}"
+  },
+  "recs": {
+    "title": "You might also like"
+  },
+  "faq": {
+    "title": "Questions, answered",
+    "label": "Frequently asked questions"
+  },
+  "reviews": {
+    "title": "What people say",
+    "count": "{{ count }} reviews",
+    "count_one": "1 review",
+    "average": "{{ rating }} out of 5",
+    "stars": "{{ rating }} out of 5 stars"
   }
 }

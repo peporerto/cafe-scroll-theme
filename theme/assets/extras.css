@@ -1,0 +1,48 @@
+/* Product page extras: reviews, related products, FAQ. Dark surfaces, design E. */
+.xs { padding: clamp(3rem, 7vw, 6rem) var(--pdp-gutter, clamp(1.25rem, 4vw, 3rem)); }
+.xs__inner { max-width: 1500px; margin-inline: auto; }
+.xs__title { font-family: var(--font-display); font-size: clamp(1.7rem, 3.4vw, 2.6rem); letter-spacing: -.02em; line-height: 1.1; margin: 0 0 clamp(1.5rem, 3vw, 2.5rem); }
+.recs:not(:has(.xs__inner)) { padding-block: 0; } /* empty until loaded: stays in layout so the observer can see it */
+
+/* stars: two layers, the filled one is clipped to rating/5 */
+.stars { --size: 1.05rem; display: inline-block; position: relative; width: calc(var(--size) * 5); height: var(--size); vertical-align: middle;
+  background: currentColor; color: rgba(255, 241, 222, .22);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath d='M10 1.5l2.6 5.5 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6L1.4 7.8l6-.8z'/%3E%3C/svg%3E") 0 0 / var(--size) var(--size) repeat-x;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath d='M10 1.5l2.6 5.5 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6L1.4 7.8l6-.8z'/%3E%3C/svg%3E") 0 0 / var(--size) var(--size) repeat-x; }
+.stars::after { content: ""; position: absolute; inset: 0; width: calc(var(--rating) / 5 * 100%); background: var(--color-accent); }
+
+/* reviews */
+.reviews__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .75rem 2rem; margin-bottom: clamp(1.5rem, 3vw, 2.5rem); }
+.reviews__head .xs__title { margin: 0; }
+.reviews__avg { display: flex; align-items: center; gap: .6rem; margin: 0; color: var(--color-muted); }
+.reviews__num { font-family: var(--font-display); font-size: 2rem; color: var(--color-text); line-height: 1; }
+.reviews__grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 1.25rem; }
+.review { background: var(--color-raised); border: 1px solid var(--color-line); border-radius: var(--radius-l); padding: 1.5rem; display: grid; align-content: start; gap: .7rem; box-shadow: var(--shadow-2); position: relative; }
+.review::before { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 1px 0 var(--highlight); pointer-events: none; }
+.review__title { font-family: var(--font-display); font-size: 1.15rem; margin: .2rem 0 0; }
+.review__text { margin: 0; color: var(--color-muted); line-height: 1.6; }
+.review__who { margin: .4rem 0 0; font-size: .875rem; color: var(--color-muted); }
+.review__who strong { color: var(--color-text); }
+
+/* related products */
+.recs__grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(16rem, 100%), 1fr)); gap: clamp(1rem, 2vw, 1.75rem); }
+.recs.is-loaded .recs__grid { animation: xs-in .5s ease both; }
+@keyframes xs-in { from { opacity: 0; transform: translateY(12px); } }
+
+/* faq */
+.faq__layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: clamp(2rem, 6vw, 6rem); align-items: start; }
+.faq__head .xs__title { margin-bottom: 1rem; }
+.faq__intro { color: var(--color-muted); max-width: 28rem; }
+.faq__intro a { color: var(--color-eyebrow); }
+.faq__item { border-top: 1px solid var(--color-line); }
+.faq__item:last-child { border-bottom: 1px solid var(--color-line); }
+.faq__item summary { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1.2rem 0; cursor: pointer; list-style: none; font-weight: 600; font-size: 1.05rem; }
+.faq__item summary::-webkit-details-marker { display: none; }
+.faq__item summary::after { content: "+"; font-size: 1.5rem; font-weight: 300; color: var(--color-eyebrow); transition: transform .25s; flex: none; }
+.faq__item[open] summary::after { transform: rotate(45deg); }
+.faq__item summary:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.faq__answer { padding: 0 2.5rem 1.4rem 0; color: var(--color-muted); line-height: 1.7; }
+.faq__answer > :first-child { margin-top: 0; } .faq__answer > :last-child { margin-bottom: 0; }
+
+@media (max-width: 800px) { .faq__layout { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .recs.is-loaded .recs__grid { animation: none; } }

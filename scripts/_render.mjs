@@ -314,9 +314,15 @@ async function renderSection(name,id,tpl,extra={}){
   return engine.parseAndRender(body,{section:{id,settings,blocks},settings:gsettings,shop:SHOP,routes:ROUTES,linklists:{},request:REQUEST,collections:{},products:[],cart:buildCart(),...extra});
 }
 const SHOP={name:'Altura',url:'https://altura.example',money_format:'${{amount}}',enabled_payment_types:['visa','master','american_express','shopify_pay'],password_message:'<p>We are roasting the first batches. Leave your email and we will tell you the day we open.</p>'};
-const ROUTES={root_url:'/',cart_url:'/cart',all_products_collection_url:'/collections/all',search_url:'/search'};
+const ROUTES={root_url:'/',cart_url:'/cart',all_products_collection_url:'/collections/all',product_recommendations_url:'/recommendations/products',search_url:'/search'};
 const REQUEST={locale:{iso_code:'en'},page_type:'index'};
 
+export async function renderRecs(sectionId='recommendations', limit=4){
+  const tpl=JSON.parse(fs.readFileSync(path.join(T,'templates/product.json'),'utf8')).sections.recommendations;
+  const products=demoCollection('all',new URLSearchParams()).collection.products.slice(1,1+limit);
+  const html=await renderSection('product-recommendations',sectionId,tpl,{product:demoProduct(),recommendations:{performed:true,products_count:products.length,products}});
+  return `<div id="shopify-section-${sectionId}" class="shopify-section">${html}</div>`;
+}
 export async function render(kind='index', opts={}){
   const tplName = kind==='contact' ? 'page.contact' : kind;
   if (kind==='gift_card') return renderGiftCard(opts);

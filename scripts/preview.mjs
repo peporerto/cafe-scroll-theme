@@ -1,6 +1,6 @@
 // Vista previa local SIN Shopify: renderiza el Liquid, sirve theme/assets y simula el carrito en memoria.  Uso: npm run preview
 import http from 'node:http'; import fs from 'node:fs'; import path from 'node:path';
-import { render, cartApi, renderCartSection, renderCollectionSection } from './_render.mjs';
+import { render, cartApi, renderCartSection, renderCollectionSection, renderRecs } from './_render.mjs';
 const mime = { '.js':'text/javascript', '.css':'text/css', '.png':'image/png', '.jpg':'image/jpeg', '.webp':'image/webp', '.svg':'image/svg+xml' };
 const html = (r, body, code = 200) => { r.writeHead(code, {'Content-Type':'text/html; charset=utf-8'}); r.end(body); };
 const json = (r, body, code = 200) => { r.writeHead(code, {'Content-Type':'application/json'}); r.end(JSON.stringify(body)); };
@@ -19,6 +19,7 @@ async function parseBody(q) {
 http.createServer(async (q, r) => {
   const u = new URL(q.url, 'http://x'); const p = u.pathname;
   try {
+    if (p === '/recommendations/products') return html(r, await renderRecs(u.searchParams.get('section_id') || 'recommendations', Number(u.searchParams.get('limit')) || 4));
     if (p === '/') return html(r, await render('index'));
     if (p === '/collections' || p === '/collections/') return html(r, await render('list-collections', { query: u.searchParams }));
     if (p === '/pages/contact') return html(r, await render('contact', { query: u.searchParams }));

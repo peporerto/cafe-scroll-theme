@@ -57,7 +57,7 @@
           "type": "accordion",
           "settings": {
             "heading": "Brew guide",
-            "content": "<p>Pour-over: 15 g of coffee to 250 ml of water at 94 \u00b0C, medium-fine grind, 2:45 total time.</p><p>Espresso: 18 g in, 36 g out in 28 seconds.</p>",
+            "content": "<p>Pour-over: 15 g of coffee to 250 ml of water at 94 °C, medium-fine grind, 2:45 total time.</p><p>Espresso: 18 g in, 36 g out in 28 seconds.</p>",
             "open": false
           }
         },
@@ -87,9 +87,103 @@
         "image_fit": "cover",
         "show_leaves": true
       }
+    },
+    "reviews": {
+      "type": "reviews",
+      "settings": {
+        "heading": "What people say",
+        "show_average": true
+      },
+      "blocks": {
+        "r1": {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "title": "Tastes like the farm",
+            "text": "Bright, floral and clean. The first cup of the morning is now the best part of my day.",
+            "author": "Customer name",
+            "detail": "Verified buyer"
+          }
+        },
+        "r2": {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "title": "Fresh, really",
+            "text": "Roast date was two days before it arrived. You can taste the difference.",
+            "author": "Customer name",
+            "detail": "Verified buyer"
+          }
+        },
+        "r3": {
+          "type": "review",
+          "settings": {
+            "rating": 4,
+            "title": "Great pour-over",
+            "text": "Excellent in the V60. I would like a bigger bag size.",
+            "author": "Customer name",
+            "detail": "Verified buyer"
+          }
+        }
+      },
+      "block_order": [
+        "r1",
+        "r2",
+        "r3"
+      ]
+    },
+    "faq": {
+      "type": "faq",
+      "settings": {
+        "heading": "Questions, answered",
+        "intro": "<p>Still unsure? <a href=\"/pages/contact\">Write to us</a>.</p>"
+      },
+      "blocks": {
+        "q1": {
+          "type": "question",
+          "settings": {
+            "question": "How fresh is the coffee?",
+            "answer": "<p>We roast to order on Mondays and Thursdays and ship within 48 hours, so it reaches you in its best window.</p>"
+          }
+        },
+        "q2": {
+          "type": "question",
+          "settings": {
+            "question": "How should I store it?",
+            "answer": "<p>Keep it in the bag, closed, away from light and heat. Do not refrigerate it. Drink within a month of the roast date.</p>"
+          }
+        },
+        "q3": {
+          "type": "question",
+          "settings": {
+            "question": "Which grind should I choose?",
+            "answer": "<p>Whole bean if you own a grinder. Otherwise espresso for moka and espresso machines, filter for pour-over and drip.</p>"
+          }
+        },
+        "q4": {
+          "type": "question",
+          "settings": {
+            "question": "Can I pause or cancel my subscription?",
+            "answer": "<p>Yes, any time before the next roast, from your account or by writing to us. No fees.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "q1",
+        "q2",
+        "q3",
+        "q4"
+      ]
+    },
+    "recommendations": {
+      "type": "product-recommendations",
+      "settings": {}
     }
   },
   "order": [
-    "main"
+    "main",
+    "reviews",
+    "recommendations",
+    "faq"
   ]
 }

@@ -1,0 +1,62 @@
+{{ 'extras.css' | asset_url | stylesheet_tag }}
+
+<section class="xs faq" data-section-id="{{ section.id }}">
+  <div class="xs__inner faq__layout">
+    <header class="faq__head">
+      {%- if section.settings.heading != blank %}<h2 class="xs__title">{{ section.settings.heading }}</h2>{% endif %}
+      {%- if section.settings.intro != blank %}<div class="faq__intro rte">{{ section.settings.intro }}</div>{% endif %}
+    </header>
+    <div class="faq__list" role="group" aria-label="{{ 'faq.label' | t }}">
+      {%- for block in section.blocks %}
+        <details class="faq__item" {{ block.shopify_attributes }}>
+          <summary>{{ block.settings.question }}</summary>
+          <div class="faq__answer rte">{{ block.settings.answer }}</div>
+        </details>
+      {%- endfor %}
+    </div>
+  </div>
+</section>
+
+{%- if section.blocks.size > 0 %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {%- for block in section.blocks %}
+    {
+      "@type": "Question",
+      "name": {{ block.settings.question | json }},
+      "acceptedAnswer": { "@type": "Answer", "text": {{ block.settings.answer | strip_html | json }} }
+    }{% unless forloop.last %},{% endunless %}
+    {%- endfor %}
+  ]
+}
+</script>
+{%- endif %}
+
+{% schema %}
+{
+  "name": "FAQ",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Questions, answered" },
+    { "type": "richtext", "id": "intro", "label": "Intro" }
+  ],
+  "blocks": [
+    {
+      "type": "question",
+      "name": "Question",
+      "settings": [
+        { "type": "text", "id": "question", "label": "Question", "default": "How fresh is the coffee?" },
+        { "type": "richtext", "id": "answer", "label": "Answer", "default": "<p>We roast to order on Mondays and Thursdays and ship within 48 hours.</p>" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "FAQ",
+      "blocks": [ { "type": "question" }, { "type": "question" }, { "type": "question" } ]
+    }
+  ]
+}
+{% endschema %}
