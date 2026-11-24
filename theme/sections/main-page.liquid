@@ -1,0 +1,23 @@
+{{ 'scene.css' | asset_url | stylesheet_tag }}
+{{ 'pages.css' | asset_url | stylesheet_tag }}
+<section class="pg pgpage scene scene--band" data-depth-scene>
+  {%- render 'scene-band', image: section.settings.scene_image, leaves: section.settings.show_leaves %}
+  <div class="pg__inner">
+    {%- render 'page-head', title: page.title %}
+    <div class="pg__prose rte">{{ page.content }}</div>
+  </div>
+</section>
+
+<script src="{{ 'pages.js' | asset_url }}" type="module" defer></script>
+
+{% schema %}
+{
+  "name": "Page",
+  "tag": "div",
+  "settings": [
+    { "type": "header", "content": "Scene" },
+    { "type": "image_picker", "id": "scene_image", "label": "Background photo", "info": "Overrides the default scene photo from Theme settings. Empty = use the default." },
+    { "type": "checkbox", "id": "show_leaves", "label": "Show the branches in front of the scene", "default": true }
+  ]
+}
+{% endschema %}

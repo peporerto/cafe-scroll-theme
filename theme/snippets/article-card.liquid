@@ -1,0 +1,27 @@
+{%- comment -%}
+  Article card for the blog grid and for search results. Params: article, loading ('lazy' | 'eager'), show_blog (bool).
+{%- endcomment -%}
+{%- liquid
+  assign excerpt = article.excerpt_or_content | strip_html | strip | truncatewords: 26
+-%}
+<article class="acard">
+  <div class="acard__media">
+    {%- if article.image != blank %}
+      {{
+        article.image
+        | image_url: width: 900
+        | image_tag: class: 'acard__img', loading: loading | default: 'lazy', widths: '360,540,720,900', sizes: '(min-width: 900px) 30vw, 92vw', alt: article.image.alt
+      }}
+    {%- else %}
+      <span class="acard__empty" aria-hidden="true">{{ shop.name | slice: 0 }}</span>
+    {%- endif %}
+  </div>
+  <div class="acard__body">
+    <p class="acard__meta">
+      {%- if show_blog and article.blog.title != blank %}{{ article.blog.title }} · {% endif -%}
+      <time datetime="{{ article.published_at | date: '%Y-%m-%d' }}">{{ article.published_at | date: '%B %e, %Y' }}</time>
+    </p>
+    <h3 class="acard__title"><a class="acard__link" href="{{ article.url }}">{{ article.title }}</a></h3>
+    {%- if excerpt != blank %}<p class="acard__excerpt">{{ excerpt }}</p>{% endif %}
+  </div>
+</article>

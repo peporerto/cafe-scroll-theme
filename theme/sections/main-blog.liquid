@@ -1,0 +1,52 @@
+{{ 'scene.css' | asset_url | stylesheet_tag }}
+{{ 'pages.css' | asset_url | stylesheet_tag }}
+<section class="pg blog scene scene--band" data-depth-scene>
+  {%- render 'scene-band', image: section.settings.scene_image, leaves: section.settings.show_leaves %}
+  <div class="pg__inner">
+    {%- render 'page-head', title: blog.title %}
+
+    {%- if section.settings.show_tags and blog.all_tags.size > 0 %}
+      <nav class="blog__tags" aria-label="{{ 'blog.filter_label' | t }}">
+        <ul role="list">
+          <li><a href="{{ blog.url }}"{% unless current_tags %} aria-current="page"{% endunless %}>{{ 'blog.all_tags' | t }}</a></li>
+          {%- for tag in blog.all_tags %}
+            <li><a href="{{ blog.url }}/tagged/{{ tag | handleize }}"{% if current_tags contains tag %} aria-current="page"{% endif %}>{{ tag }}</a></li>
+          {%- endfor %}
+        </ul>
+      </nav>
+    {%- endif %}
+
+    {%- paginate blog.articles by section.settings.per_page %}
+      {%- if blog.articles.size == 0 %}
+        <div class="pg__empty">
+          <p class="pg__empty-title">{{ 'blog.empty_title' | t }}</p>
+          <p class="pg__empty-text">{{ 'blog.empty_text' | t }}</p>
+        </div>
+      {%- else %}
+        <ul class="blog__grid" role="list">
+          {%- for article in blog.articles %}
+            <li>{% render 'article-card', article: article, loading: 'lazy' %}</li>
+          {%- endfor %}
+        </ul>
+        {%- assign pager_label = 'blog.pagination' | t -%}
+        {%- render 'pagination', paginate: paginate, label: pager_label %}
+      {%- endif %}
+    {%- endpaginate %}
+  </div>
+</section>
+
+<script src="{{ 'pages.js' | asset_url }}" type="module" defer></script>
+
+{% schema %}
+{
+  "name": "Blog",
+  "tag": "div",
+  "settings": [
+    { "type": "range", "id": "per_page", "label": "Articles per page", "min": 6, "max": 24, "step": 3, "default": 9 },
+    { "type": "checkbox", "id": "show_tags", "label": "Show topic filter", "default": true },
+    { "type": "header", "content": "Scene" },
+    { "type": "image_picker", "id": "scene_image", "label": "Background photo", "info": "Overrides the default scene photo from Theme settings. Empty = use the default." },
+    { "type": "checkbox", "id": "show_leaves", "label": "Show the branches in front of the scene", "default": true }
+  ]
+}
+{% endschema %}

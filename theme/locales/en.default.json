@@ -94,5 +94,97 @@
     "page": "Page {{ number }}",
     "products_updated": "Showing {{ count }} products",
     "loading": "Loading products"
+  },
+  "pages": {
+    "continue": "Continue",
+    "back_home": "Back to the coffee",
+    "all_products": "Shop all coffee"
+  },
+  "list_collections": {
+    "title": "Collections",
+    "product_count": "{{ count }} products",
+    "product_count_one": "1 product",
+    "empty_title": "No collections yet",
+    "empty_text": "Add collections in your Shopify admin and they will show up here.",
+    "pagination": "Pagination"
+  },
+  "blog": {
+    "read_more": "Read more",
+    "by": "By {{ author }}",
+    "min_read": "{{ count }} min read",
+    "all_tags": "All",
+    "filter_label": "Filter articles by topic",
+    "empty_title": "No articles yet",
+    "empty_text": "Check back soon.",
+    "pagination": "Pagination",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {{ number }}",
+    "back_to": "Back to {{ blog }}",
+    "previous_article": "Previous article",
+    "next_article": "Next article",
+    "tags": "Topics",
+    "article_nav": "More articles"
+  },
+  "search": {
+    "title": "Search",
+    "label": "Search the shop",
+    "placeholder": "Search coffee, guides…",
+    "submit": "Search",
+    "prompt": "Type what you are looking for.",
+    "results": "{{ count }} results for “{{ terms }}”",
+    "result_one": "1 result for “{{ terms }}”",
+    "no_results_title": "Nothing found for “{{ terms }}”",
+    "no_results_text": "Check the spelling, try a shorter word, or browse all the coffee.",
+    "type_article": "Article",
+    "type_page": "Page",
+    "pagination": "Pagination",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {{ number }}"
+  },
+  "contact": {
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone (optional)",
+    "message": "Message",
+    "send": "Send message",
+    "success": "Thanks! We got your message and will reply within one business day.",
+    "error_title": "Please fix the following:",
+    "details": "Details"
+  },
+  "not_found": {
+    "eyebrow": "Error 404",
+    "title": "This trail goes nowhere",
+    "text": "The page you were looking for does not exist or has moved."
+  },
+  "password": {
+    "eyebrow": "Opening soon",
+    "title_fallback": "Almost ready",
+    "password_label": "Password",
+    "enter": "Enter",
+    "enter_title": "Enter the store with the password",
+    "wrong": "Wrong password. Try again.",
+    "owner": "Store owner?",
+    "owner_link": "Log in here",
+    "email_title": "Be the first to know",
+    "email_label": "Email",
+    "email_submit": "Notify me",
+    "email_success": "Thanks! We will email you when we open."
+  },
+  "gift_card": {
+    "title": "Your gift card",
+    "balance": "Balance",
+    "initial": "Original value",
+    "code": "Gift card code",
+    "copy": "Copy code",
+    "copied": "Copied",
+    "print": "Print",
+    "use": "Use this code at checkout.",
+    "shop_now": "Shop now",
+    "expired": "Expired",
+    "disabled": "This gift card is disabled",
+    "expires": "Expires {{ date }}",
+    "add_to_wallet": "Add to Apple Wallet"
   }
 }

@@ -22,11 +22,16 @@ engine.registerFilter('preload_tag', (u,...args)=>{ const a=kwargs(args); return
 engine.registerFilter('t', function(k,...args){ return translate(k, kwargs(args)); });
 engine.registerFilter('image_url', v=> (v && typeof v==='object') ? (v.src || v.preview_image?.src) : v);
 engine.registerFilter('image_tag', (url,...args)=>{ const a=kwargs(args); return `<img src="${url}" class="${a.class||''}" loading="${a.loading||'lazy'}" ${a.fetchpriority&&a.fetchpriority!=='auto'?`fetchpriority="${a.fetchpriority}"`:''} alt="${a.alt||''}">`; });
+engine.registerFilter('handleize', v=>String(v).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''));
+engine.registerFilter('format_code', v=>String(v).replace(/(.{4})(?=.)/g,'$1 ').toUpperCase());
 engine.registerFilter('money', cents);
 engine.registerFilter('money_without_currency', v=> (Number(v)/100).toFixed(2));
 engine.registerFilter('unit_price_with_measurement', (v,m)=> `${cents(v)} / ${m?.reference_value||1}${m?.reference_unit||'g'}`);
-engine.registerFilter('structured_data', (p)=> JSON.stringify({'@context':'http://schema.org/','@type':'Product',name:p?.title,description:p?.description,offers:(p?.variants||[]).map(v=>({'@type':'Offer',price:(v.price/100).toFixed(2),priceCurrency:'USD',availability:v.available?'http://schema.org/InStock':'http://schema.org/OutOfStock'}))}));
+engine.registerFilter('structured_data', (p)=> p?.object_type==='article' ? JSON.stringify({'@context':'http://schema.org/','@type':'Article',headline:p.title,datePublished:p.published_at,author:{'@type':'Person',name:p.author}}) : (PRODUCT_SD)(p));
+const PRODUCT_SD = (p)=> JSON.stringify({'@context':'http://schema.org/','@type':'Product',name:p?.title,description:p?.description,offers:(p?.variants||[]).map(v=>({'@type':'Offer',price:(v.price/100).toFixed(2),priceCurrency:'USD',availability:v.available?'http://schema.org/InStock':'http://schema.org/OutOfStock'}))});
 engine.registerFilter('payment_button', ()=>'<div class="shopify-payment-button"><button type="button" class="shopify-payment-button__button">Buy it now (demo)</button></div>');
+
+engine.registerTag('layout', { parse(){}, render(){} });
 
 // ---- {% form 'product', product, id: x, class: y %} ... {% endform %} ----
 engine.registerTag('form', {
@@ -40,14 +45,17 @@ engine.registerTag('form', {
   },
   * render(ctx, emitter){
     const parts = this.args.split(/,(?=(?:[^']*'[^']*')*[^']*$)/).map(s=>s.trim());
+    const type = String(yield this.liquid.evalValue(parts[0], ctx));
     const attrs = {};
-    for (const part of parts.slice(2)) {
+    for (const part of parts.slice(type === 'product' ? 2 : 1)) {
       const m = part.match(/^([\w-]+)\s*:\s*(.+)$/); if (!m) continue;
       attrs[m[1]] = yield this.liquid.evalValue(m[2], ctx);
     }
     const attr = Object.entries(attrs).map(([k,v])=>`${k}="${v}"`).join(' ');
-    emitter.write(`<form method="post" action="/cart/add" accept-charset="UTF-8" enctype="multipart/form-data" ${attr}><input type="hidden" name="form_type" value="product"><input type="hidden" name="utf8" value="✓">`);
-    ctx.push({ form: { errors: null } });
+    const action = { product:'/cart/add', contact:'/contact', storefront_password:'/password', customer:'/contact' }[type] || '/';
+    emitter.write(`<form method="post" action="${action}" accept-charset="UTF-8" enctype="multipart/form-data" ${attr}><input type="hidden" name="form_type" value="${type}"><input type="hidden" name="utf8" value="✓">`);
+    const req = ctx.get(['request']) || {};
+    ctx.push({ form: { errors: req.form_errors || null, 'posted_successfully?': !!req.form_posted, email: '', name: '', phone: '', body: '' } });
     yield this.liquid.renderer.renderTemplates(this.tpls, ctx, emitter);
     ctx.pop();
     emitter.write('</form>');
@@ -76,8 +84,10 @@ engine.registerTag('paginate', {
     const parts = []; let last = 0;
     for (const n of nums) { if (n - last > 1) parts.push({ title: '…', is_link: false }); parts.push(n === cur ? { title: n, is_link: false } : { title: n, url: url(n), is_link: true }); last = n; }
     const paginate = { pages, current_page: cur, items: list.length, page_size: per, current_offset: (cur - 1) * per, previous: cur > 1 ? { url: url(cur - 1) } : null, next: cur < pages ? { url: url(cur + 1) } : null, parts };
-    const collection = { ...ctx.get(['collection']), products: list.slice((cur - 1) * per, cur * per) };
-    ctx.push({ paginate, collection });
+    const [objName, prop] = m[1].trim().split('.');
+    const slice = list.slice((cur - 1) * per, cur * per);
+    const scope = prop ? { paginate, [objName]: { ...ctx.get([objName]), [prop]: slice } } : { paginate, [objName]: slice };
+    ctx.push(scope);
     yield this.liquid.renderer.renderTemplates(this.tpls, ctx, emitter);
     ctx.pop();
   },
@@ -85,6 +95,7 @@ engine.registerTag('paginate', {
 
 const settingsSchema = JSON.parse(fs.readFileSync(path.join(T,'config/settings_schema.json'),'utf8'));
 const gsettings={}; for(const g of settingsSchema) for(const s of g.settings||[]) if(s.id) gsettings[s.id]=s.default;
+gsettings.scene_image={src:'/preview-images/hero-far.jpg',width:1376,height:768}; // preview: the demo photo as the default scene
 const D='preview-images'; const has=f=>fs.existsSync(path.join(D,f)) ? '/'+D+'/'+f : undefined;
 const pick=(o)=>Object.fromEntries(Object.entries(o).filter(([,v])=>v));
 const imgs = {
@@ -221,6 +232,68 @@ export async function renderCollectionSection(id='main', handle='all', query='')
   return `<div id="shopify-section-${id}" class="shopify-section">${html}</div>`;
 }
 
+
+// ---- demo content pages: collections list, blog + articles, search, page, contact, 404, password, gift card ----
+function demoSite(){
+  const photo = (f)=> ({ src: has(f), width: 1200, height: 800, alt: '' });
+  const topics = [['Brewing','Brew guide: pour-over that tastes like the farm','<p>Water temperature matters more than most people think. Start at <strong>94 °C</strong>, rinse the filter, and bloom for 40 seconds.</p><h2>Grind and ratio</h2><p>Medium-fine, 15 g of coffee to 250 ml of water. Pour in slow circles and finish by 2:45.</p><blockquote>If it tastes sour, grind finer. If it tastes bitter, grind coarser.</blockquote><h3>Troubleshooting</h3><ul><li>Sour: finer grind or hotter water.</li><li>Bitter: coarser grind or cooler water.</li><li>Flat: fresher beans.</li></ul><p>That is the whole method. Everything else is taste.</p>','hero-open.jpg','Maria Lopez'],
+    ['Farms','A morning in Gedeo: where Yirgacheffe begins','<p>At 1,900 metres the air is thin and the cherries ripen slowly, which is exactly why the cup is so floral.</p><p>We spent a week with the families who pick, wash and dry on raised beds.</p>','hero-far.jpg','Santiago R.'],
+    ['Roasting','Why we roast on Mondays and Thursdays','<p>Fresh matters. Coffee needs a few days to rest after roasting, so we time every batch to arrive when it tastes best.</p>','product-bag-open.jpg','Maria Lopez'],
+    ['Brewing','Espresso at home without a fancy machine','<p>You do not need a thousand-dollar machine. You need a scale, a timer and fresh beans.</p>','product-bag-closed.jpg','Santiago R.'],
+    ['Farms','Honey, washed, natural: what the process changes','<p>Processing is how the fruit is removed from the seed, and it shapes the cup more than most people expect.</p>','hero-open.jpg','Maria Lopez'],
+    ['Roasting','Light vs dark: what changes in the cup','<p>Light roasts keep the origin. Dark roasts bring the roast. Pick what you want to taste.</p>','hero-far.jpg','Santiago R.'],
+    ['Brewing','Cold brew in a jar, 12 hours, zero stress','<p>Coarse grind, cold water, a jar and the fridge overnight. That is the recipe.</p>','product-bag-open.jpg','Maria Lopez'],
+    ['Farms','Meet the producers behind our Kenya lot','<p>The cooperative at Nyeri has been washing cherries since the 1960s.</p>','product-bag-closed.jpg','Santiago R.'],
+    ['Roasting','How to read a roast date','<p>The date on the bag is the day the coffee left the roaster. Wait a few days, then drink within a month.</p>','hero-open.jpg','Maria Lopez'],
+    ['Brewing','The best grind size for every brewer','<p>Espresso fine, pour-over medium-fine, French press coarse. Adjust by taste.</p>','hero-far.jpg','Santiago R.'],
+  ];
+  const blog = { title:'Journal', url:'/blogs/journal', handle:'journal' };
+  const ARTICLES = topics.map(([tag,title,content,img,author],i)=>({
+    object_type:'article', id:i+1, title, url:`/blogs/journal/${title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}`, author, tags:[tag],
+    published_at:new Date(Date.UTC(2026,10,20-i*4)).toISOString(), content, excerpt_or_content:content.replace(/<[^>]+>/g,' ').slice(0,300),
+    image: has(img)?{ src:has(img), alt:title, width:1200, height:800 }:null, blog,
+  }));
+  return { blog, ARTICLES };
+}
+function demoPageExtra(kind, opts={}){
+  const { blog, ARTICLES } = demoSite();
+  const q = opts.query instanceof URLSearchParams ? opts.query : new URLSearchParams(opts.query||'');
+  const pageN = Number(q.get('page'))||1;
+  const urls = (base)=> Array.from({length:30},(_,i)=> i===0 ? base : `${base}?page=${i+1}`);
+  const tag = opts.tag || null;
+  if (kind==='list-collections'){
+    const imgsList=['hero-far.jpg','product-bag-open.jpg','hero-open.jpg','product-bag-closed.jpg'].map(has);
+    const names=['Single origin','Blends','Decaf','Gift boxes','Brewing gear','Subscriptions','Merch'];
+    const collections = names.map((t,i)=>({ title:t, url:`/collections/${t.toLowerCase().replace(/[^a-z0-9]+/g,'-')}`, products_count:[6,2,1,3,5,2,4][i], featured_image:{src:imgsList[i%4],width:900,height:1100}, products:[] }));
+    return { collections, request:{...REQUEST,page_type:'list-collections',current_page:pageN,page_urls:urls('/collections')} };
+  }
+  if (kind==='page' || kind==='contact'){
+    const page = kind==='page'
+      ? { title:'Our story', content:'<p>Altura started on a hillside at 1,900 metres with a simple idea: coffee should taste like the place it comes from.</p><h2>What we do</h2><p>We buy directly from small farms, roast every Monday and Thursday, and ship within 48 hours.</p><blockquote>Fresh, traceable, honest.</blockquote><p>Questions? <a href="/pages/contact">Write to us</a>.</p>' }
+      : { title:'Contact', content:'<p>Questions about an order or a brew? Send us a message and a real person will reply within one business day.</p>' };
+    return { page, request:{...REQUEST,page_type:'page', form_posted: opts.query?.get?.('sent')==='1' || false} };
+  }
+  if (kind==='blog'){
+    const list = tag ? ARTICLES.filter(a=>a.tags.includes(tag)) : ARTICLES;
+    return { blog:{ ...blog, articles:list, articles_count:list.length, all_tags:['Brewing','Farms','Roasting'] }, current_tags: tag?[tag]:null, request:{...REQUEST,page_type:'blog',current_page:pageN,page_urls:urls('/blogs/journal')} };
+  }
+  if (kind==='article'){
+    const a = ARTICLES[Number(opts.index)||0];
+    return { article:a, blog:{ ...blog, articles:ARTICLES, previous_article: ARTICLES[(Number(opts.index)||0)+1] ? {url:ARTICLES[(Number(opts.index)||0)+1].url,title:ARTICLES[(Number(opts.index)||0)+1].title}:null, next_article: ARTICLES[(Number(opts.index)||0)-1] ? {url:ARTICLES[(Number(opts.index)||0)-1].url,title:ARTICLES[(Number(opts.index)||0)-1].title}:null }, request:{...REQUEST,page_type:'article'} };
+  }
+  if (kind==='search'){
+    const terms = (q.get('q')||'').trim();
+    const products = demoCollection('all', new URLSearchParams()).collection.products.map(p=>({...p, object_type:'product'}));
+    const pages = [{ object_type:'page', title:'Our story', url:'/pages/our-story', content:'<p>Altura started on a hillside at 1,900 metres.</p>' }];
+    const all = [...products, ...ARTICLES, ...pages];
+    const results = terms ? all.filter(r=>(r.title+' '+(r.content||'')+' '+(r.type||'')).toLowerCase().includes(terms.toLowerCase())) : [];
+    return { search:{ performed: !!terms, terms, results, results_count: results.length }, request:{...REQUEST,page_type:'search',current_page:pageN,page_urls:urls('/search?q='+encodeURIComponent(terms))} };
+  }
+  if (kind==='password') return { shop_password:true, request:{...REQUEST,page_type:'password',form_errors: q.get('wrong')==='1' ? ['password'] : null, form_posted: q.get('sent')==='1'} };
+  if (kind==='gift_card') return { gift_card:{ code:'ab12cd34ef56gh78', balance:5000, initial_value:7500, enabled:true, expired:false, expires_on:'2027-11-20', pass_url:'/pass', url:'/gift' }, request:{...REQUEST,page_type:'gift_card'} };
+  return { request:{...REQUEST,page_type:kind} };
+}
+
 async function renderSection(name,id,tpl,extra={}){
   const raw=fs.readFileSync(path.join(T,'sections',name+'.liquid'),'utf8');
   const m=raw.match(/{%\s*schema\s*%}([\s\S]*?){%\s*endschema\s*%}/);
@@ -237,25 +310,36 @@ async function renderSection(name,id,tpl,extra={}){
   }
   return engine.parseAndRender(body,{section:{id,settings,blocks},settings:gsettings,shop:SHOP,routes:ROUTES,linklists:{},request:REQUEST,collections:{},products:[],cart:buildCart(),...extra});
 }
-const SHOP={name:'Altura',url:'https://altura.example',money_format:'${{amount}}'};
-const ROUTES={root_url:'/',cart_url:'/cart',all_products_collection_url:'/collections/all'};
+const SHOP={name:'Altura',url:'https://altura.example',money_format:'${{amount}}',password_message:'<p>We are roasting the first batches. Leave your email and we will tell you the day we open.</p>'};
+const ROUTES={root_url:'/',cart_url:'/cart',all_products_collection_url:'/collections/all',search_url:'/search'};
 const REQUEST={locale:{iso_code:'en'},page_type:'index'};
 
 export async function render(kind='index', opts={}){
-  const tplName = kind;
+  const tplName = kind==='contact' ? 'page.contact' : kind;
+  if (kind==='gift_card') return renderGiftCard(opts);
   const tpl=JSON.parse(fs.readFileSync(path.join(T,`templates/${tplName}.json`),'utf8'));
   let extra = kind==='product' ? { product: demoProduct(opts.variant) } : {};
   if (kind==='collection') extra = collectionExtra(opts.handle||'all', opts.query);
+  else if (!['index','product','cart'].includes(kind)) extra = demoPageExtra(kind, opts);
   const request = extra.request || {...REQUEST, page_type: kind};
   // the demo photos are lifestyle shots (not product shots on white), so the preview fills the frame and skips the blend
   if (kind==='product') tpl.sections.main.settings={...tpl.sections.main.settings, image_fit:'cover', scene_image:{src:'/preview-images/hero-far.jpg',width:1376,height:768}};
   if (kind==='collection') tpl.sections.main.settings={...tpl.sections.main.settings, image_fit:'cover', products_per_page:8, scene_image:{src:'/preview-images/hero-far.jpg',width:1376,height:768}};
   if (kind==='cart') tpl.sections.main.settings={...tpl.sections.main.settings, scene_image:{src:'/preview-images/hero-open.jpg',width:1672,height:941}};
   let main=''; for(const id of tpl.order){ main+=await renderSection(tpl.sections[id].type,id,tpl.sections[id],{...extra,request});}
-  let layout=fs.readFileSync(path.join(T,'layout/theme.liquid'),'utf8');
-  const header=await renderSection('header','header'), footer=await renderSection('footer','footer');
+  let layout=fs.readFileSync(path.join(T,`layout/${kind==='password'?'password':'theme'}.liquid`),'utf8');
+  const header=kind==='password'?'':await renderSection('header','header'), footer=kind==='password'?'':await renderSection('footer','footer');
   layout=layout.replace(/{%\s*section 'header'\s*%}/,'__H__').replace(/{%\s*section 'footer'\s*%}/,'__F__').replace('{{ content_for_layout }}','__M__');
-  let html=await engine.parseAndRender(layout,{settings:gsettings,shop:SHOP,request,routes:ROUTES,cart:buildCart(),...extra,page_title:kind==='product'?'Ethiopia Yirgacheffe – Altura':kind==='cart'?'Your cart – Altura':kind==='collection'?'Coffee – Altura':'Altura',canonical_url:'',content_for_header:''});
+  let html=await engine.parseAndRender(layout,{settings:gsettings,shop:SHOP,request,routes:ROUTES,cart:buildCart(),...extra,page_title:kind==='404'?'Page not found – Altura':kind==='product'?'Ethiopia Yirgacheffe – Altura':kind==='cart'?'Your cart – Altura':kind==='collection'?'Coffee – Altura':'Altura',canonical_url:'',content_for_header:''});
   html=html.replace('__H__',header).replace('__F__',footer).replace('__M__',main);
   return html;
 }
+
+async function renderGiftCard(opts){
+  const raw=fs.readFileSync(path.join(T,'templates/gift_card.liquid'),'utf8');
+  const extra=demoPageExtra('gift_card',opts);
+  return engine.parseAndRender(raw,{settings:gsettings,shop:SHOP,routes:ROUTES,...extra,content_for_header:''});
+}
+
+// Shopify exposes these everywhere, even inside {% render %}ed snippets
+engine.options.globals = { settings: gsettings, shop: SHOP, routes: ROUTES };

@@ -1,0 +1,60 @@
+{%- layout none -%}
+<!doctype html>
+<html lang="{{ request.locale.iso_code }}" data-depth="{{ settings.depth_effects | default: 'full' }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>{{ 'gift_card.title' | t }} · {{ shop.name }}</title>
+    {% render 'fonts' %}
+    {% render 'css-variables' %}
+    {{ 'base.css' | asset_url | stylesheet_tag }}
+    {{ 'scene.css' | asset_url | stylesheet_tag }}
+    {{ 'pages.css' | asset_url | stylesheet_tag }}
+    {{ content_for_header }}
+  </head>
+  <body>
+    <main id="main" tabindex="-1">
+      <section class="pg gc scene scene--band pg--tall" data-depth-scene>
+        {%- render 'scene-band', image: blank, leaves: true %}
+        <div class="pg__inner gc__inner">
+          <header class="gc__head layer">
+            <p class="pg__eyebrow">{{ shop.name }}</p>
+            <h1 class="pg__title">{{ 'gift_card.title' | t }}</h1>
+          </header>
+
+          <div class="gc__card panel">
+            {%- if gift_card.enabled == false %}
+              <p class="gc__status">{{ 'gift_card.disabled' | t }}</p>
+            {%- elsif gift_card.expired %}
+              <p class="gc__status">{{ 'gift_card.expired' | t }}</p>
+            {%- endif %}
+            <p class="gc__label">{{ 'gift_card.balance' | t }}</p>
+            <p class="gc__balance">{{ gift_card.balance | money }}</p>
+            {%- if gift_card.balance != gift_card.initial_value %}
+              <p class="gc__initial">{{ 'gift_card.initial' | t }}: {{ gift_card.initial_value | money }}</p>
+            {%- endif %}
+            {%- if gift_card.expires_on %}
+              <p class="gc__initial">{%- assign expires_date = gift_card.expires_on | date: '%B %e, %Y' -%}
+              {{ 'gift_card.expires' | t: date: expires_date }}</p>
+            {%- endif %}
+
+            <p class="gc__label">{{ 'gift_card.code' | t }}</p>
+            <p class="gc__code" id="GiftCardCode">{{ gift_card.code | format_code }}</p>
+            <p class="gc__hint">{{ 'gift_card.use' | t }}</p>
+
+            <div class="gc__actions">
+              <a class="btn btn--primary" href="{{ shop.url }}">{{ 'gift_card.shop_now' | t }}</a>
+              <button type="button" class="btn btn--ghost" data-copy="#GiftCardCode" data-done="{{ 'gift_card.copied' | t }}">{{ 'gift_card.copy' | t }}</button>
+              <button type="button" class="btn btn--ghost" data-print>{{ 'gift_card.print' | t }}</button>
+              {%- if gift_card.pass_url %}
+                <a class="btn btn--ghost" href="{{ gift_card.pass_url }}">{{ 'gift_card.add_to_wallet' | t }}</a>
+              {%- endif %}
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script src="{{ 'pages.js' | asset_url }}" type="module" defer></script>
+  </body>
+</html>

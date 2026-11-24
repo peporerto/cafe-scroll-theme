@@ -9,11 +9,11 @@ const watch = process.argv.includes('--watch');
 
 // Limpia trozos viejos para que no se acumulen entre builds.
 for (const f of readdirSync(out)) {
-  if (/^chunk-.*\.js$/.test(f) || f === 'main.js' || f === 'product.js' || f === 'cart.js' || f === 'collection.js') rmSync(join(out, f));
+  if (/^chunk-.*\.js$/.test(f) || f === 'main.js' || f === 'product.js' || f === 'cart.js' || f === 'collection.js' || f === 'pages.js') rmSync(join(out, f));
 }
 
 const options = {
-  entryPoints: { main: 'src/main.js', product: 'src/product.js', cart: 'src/cart.js', collection: 'src/collection.js' },
+  entryPoints: { main: 'src/main.js', product: 'src/product.js', cart: 'src/cart.js', collection: 'src/collection.js', pages: 'src/pages.js' },
   outdir: out,
   bundle: true,
   splitting: true,

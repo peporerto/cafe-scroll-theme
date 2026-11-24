@@ -1,0 +1,69 @@
+{{ 'scene.css' | asset_url | stylesheet_tag }}
+{{ 'pages.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign words = article.content | strip_html | split: ' ' | size
+  assign minutes = words | divided_by: 200.0 | ceil
+-%}
+<section class="pg art scene scene--band" data-depth-scene>
+  {%- render 'scene-band', image: section.settings.scene_image, leaves: section.settings.show_leaves %}
+  <div class="pg__inner">
+    {%- liquid
+      capture meta
+        if section.settings.show_author and article.author != blank
+          echo 'blog.by' | t: author: article.author
+          echo ' · '
+        endif
+        echo article.published_at | date: '%B %e, %Y'
+        echo ' · '
+        echo 'blog.min_read' | t: count: minutes
+      endcapture
+    -%}
+    {%- render 'page-head', title: article.title, eyebrow: meta, parent_title: blog.title, parent_url: blog.url %}
+
+    <article class="art__article">
+      {%- if article.image != blank %}
+        <figure class="art__hero">
+          {{
+            article.image
+            | image_url: width: 1800
+            | image_tag: class: 'art__hero-img', loading: 'eager', fetchpriority: 'high', widths: '720,1080,1440,1800', sizes: '(min-width: 1200px) 1100px, 92vw', alt: article.image.alt
+          }}
+        </figure>
+      {%- endif %}
+
+      <div class="pg__prose rte art__content">{{ article.content }}</div>
+
+      {%- if article.tags.size > 0 %}
+        <ul class="art__tags" role="list" aria-label="{{ 'blog.tags' | t }}">
+          {%- for tag in article.tags %}
+            <li><a href="{{ blog.url }}/tagged/{{ tag | handleize }}">{{ tag }}</a></li>
+          {%- endfor %}
+        </ul>
+      {%- endif %}
+
+      <nav class="art__nav" aria-label="{{ 'blog.article_nav' | t }}">
+        {%- if blog.previous_article %}<a class="art__nav-link" href="{{ blog.previous_article.url }}" rel="prev"><span>{{ 'blog.previous_article' | t }}</span>{{ blog.previous_article.title }}</a>{% else %}<span></span>{% endif %}
+        {%- if blog.next_article %}<a class="art__nav-link art__nav-link--next" href="{{ blog.next_article.url }}" rel="next"><span>{{ 'blog.next_article' | t }}</span>{{ blog.next_article.title }}</a>{% endif %}
+      </nav>
+      <p class="art__back"><a href="{{ blog.url }}">&larr; {{ 'blog.back_to' | t: blog: blog.title }}</a></p>
+    </article>
+  </div>
+</section>
+
+<script type="application/ld+json">{{ article | structured_data }}</script>
+
+<script src="{{ 'pages.js' | asset_url }}" type="module" defer></script>
+
+{% schema %}
+{
+  "name": "Article",
+  "tag": "div",
+  "settings": [
+    { "type": "checkbox", "id": "show_author", "label": "Show author", "default": true },
+    { "type": "header", "content": "Scene" },
+    { "type": "image_picker", "id": "scene_image", "label": "Background photo", "info": "Overrides the default scene photo from Theme settings. Empty = use the default." },
+    { "type": "checkbox", "id": "show_leaves", "label": "Show the branches in front of the scene", "default": true }
+  ]
+}
+{% endschema %}

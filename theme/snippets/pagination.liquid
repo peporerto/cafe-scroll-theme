@@ -1,0 +1,22 @@
+{%- comment -%}
+  Numbered pager inside {% paginate %}. Params: paginate, label (translated aria-label of the nav).
+{%- endcomment -%}
+{%- if paginate.pages > 1 %}
+  <nav class="pager" aria-label="{{ label }}">
+    {%- if paginate.previous %}
+      <a class="pager__page" href="{{ paginate.previous.url }}" rel="prev" aria-label="{{ 'collections.previous' | t }}">&larr;</a>
+    {%- endif %}
+    {%- for part in paginate.parts %}
+      {%- if part.is_link %}
+        <a class="pager__page" href="{{ part.url }}" aria-label="{{ 'collections.page' | t: number: part.title }}">{{ part.title }}</a>
+      {%- elsif part.title == paginate.current_page %}
+        <span class="pager__page is-current" aria-current="page">{{ part.title }}</span>
+      {%- else %}
+        <span class="pager__page pager__page--gap" aria-hidden="true">{{ part.title }}</span>
+      {%- endif %}
+    {%- endfor %}
+    {%- if paginate.next %}
+      <a class="pager__page" href="{{ paginate.next.url }}" rel="next" aria-label="{{ 'collections.next' | t }}">&rarr;</a>
+    {%- endif %}
+  </nav>
+{%- endif %}

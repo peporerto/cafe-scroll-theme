@@ -1,0 +1,22 @@
+{%- comment -%}
+  Breadcrumb + giant title over the scene band.
+  Params: title, eyebrow (optional), intro (optional html), parent_title / parent_url (optional second crumb).
+{%- endcomment -%}
+<nav class="pg__crumbs" aria-label="{{ 'general.breadcrumb' | t }}">
+  <ol>
+    <li><a href="{{ routes.root_url }}">{{ 'general.home' | t }}</a></li>
+    {%- if parent_title != blank %}
+      <li><a href="{{ parent_url }}">{{ parent_title }}</a></li>
+    {%- endif %}
+    <li><span aria-current="page">{{ title }}</span></li>
+  </ol>
+</nav>
+<header class="pg__head layer">
+  {%- if eyebrow != blank %}
+    <p class="pg__eyebrow">{{ eyebrow }}</p>
+  {%- endif %}
+  <h1 class="pg__title">{{ title }}</h1>
+  {%- if intro != blank %}
+    <div class="pg__intro rte">{{ intro }}</div>
+  {%- endif %}
+</header>

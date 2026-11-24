@@ -20,6 +20,16 @@ http.createServer(async (q, r) => {
   const u = new URL(q.url, 'http://x'); const p = u.pathname;
   try {
     if (p === '/') return html(r, await render('index'));
+    if (p === '/collections' || p === '/collections/') return html(r, await render('list-collections', { query: u.searchParams }));
+    if (p === '/pages/contact') return html(r, await render('contact', { query: u.searchParams }));
+    if (p.startsWith('/pages/')) return html(r, await render('page'));
+    if (p === '/blogs/journal' || p.startsWith('/blogs/journal/tagged/')) return html(r, await render('blog', { query: u.searchParams, tag: p.includes('/tagged/') ? decodeURIComponent(p.split('/tagged/')[1]).replace(/^./, (c) => c.toUpperCase()) : null }));
+    if (p.startsWith('/blogs/journal/')) return html(r, await render('article', { index: u.searchParams.get('i') || 0 }));
+    if (p === '/search') return html(r, await render('search', { query: u.searchParams }));
+    if (p === '/password') return html(r, await render('password', { query: u.searchParams }));
+    if (p === '/gift') return html(r, await render('gift_card'));
+    if (p === '/404') return html(r, await render('404'), 404);
+    if (p === '/contact' && q.method === 'POST') return redirect(r, '/pages/contact?sent=1');
     if (p.startsWith('/products/')) return html(r, await render('product', { variant: u.searchParams.get('variant') }));
     if (p.startsWith('/collections/') && q.method === 'GET') {
       const handle = p.split('/')[2] || 'all'; const qs = new URLSearchParams(u.search); qs.delete('sections');

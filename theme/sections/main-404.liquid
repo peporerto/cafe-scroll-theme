@@ -1,0 +1,31 @@
+{{ 'scene.css' | asset_url | stylesheet_tag }}
+{{ 'pages.css' | asset_url | stylesheet_tag }}
+<section class="pg nf pg--tall scene scene--band" data-depth-scene>
+  {%- render 'scene-band', image: section.settings.scene_image, leaves: section.settings.show_leaves %}
+  <div class="pg__inner">
+    <header class="nf__head layer">
+      <p class="nf__num" aria-hidden="true">404</p>
+      <p class="pg__eyebrow">{{ 'not_found.eyebrow' | t }}</p>
+      <h1 class="pg__title">{{ 'not_found.title' | t }}</h1>
+      <p class="pg__intro">{{ 'not_found.text' | t }}</p>
+      <p class="nf__actions">
+        <a class="btn btn--primary" href="{{ routes.root_url }}">{{ 'pages.back_home' | t }}</a>
+        <a class="btn btn--ghost" href="{{ routes.all_products_collection_url }}">{{ 'pages.all_products' | t }}</a>
+      </p>
+    </header>
+  </div>
+</section>
+
+<script src="{{ 'pages.js' | asset_url }}" type="module" defer></script>
+
+{% schema %}
+{
+  "name": "Not found",
+  "tag": "div",
+  "settings": [
+    { "type": "header", "content": "Scene" },
+    { "type": "image_picker", "id": "scene_image", "label": "Background photo", "info": "Overrides the default scene photo from Theme settings. Empty = use the default." },
+    { "type": "checkbox", "id": "show_leaves", "label": "Show the branches in front of the scene", "default": true }
+  ]
+}
+{% endschema %}

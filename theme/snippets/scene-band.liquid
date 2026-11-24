@@ -1,0 +1,26 @@
+{%- comment -%}
+  The photo/fog/fade/branches strip behind a page title (design E). Goes inside a `.scene.scene--band[data-depth-scene]` element.
+  Params: image (image_picker value, optional; falls back to the theme setting "Default scene photo"), leaves (true/false).
+{%- endcomment -%}
+{%- liquid
+  assign band_image = image
+  if band_image == blank
+    assign band_image = settings.scene_image
+  endif
+-%}
+<div class="scene__band" aria-hidden="true">
+  {%- if band_image != blank %}
+    {{
+      band_image
+      | image_url: width: 2000
+      | image_tag: class: 'scene__bg layer', loading: 'eager', widths: '1000,1500,2000', sizes: '100vw', alt: ''
+    }}
+  {%- else %}
+    <div class="scene__bg scene__bg--empty layer"></div>
+  {%- endif %}
+  <div class="scene__fog layer"></div>
+  <div class="scene__fade"></div>
+  {%- unless leaves == false %}
+    {%- render 'scene-leaves' %}
+  {%- endunless %}
+</div>

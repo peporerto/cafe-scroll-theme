@@ -43,6 +43,6 @@ html[data-depth="off"] .scene__leaves { filter: none; }
 .scene--band { --band-h: 26rem; }
 .scene--band::after { bottom: auto; height: var(--band-h); }
 .scene__band { position: absolute; z-index: 0; left: 0; right: 0; top: 0; height: var(--band-h); overflow: hidden; }
-.scene__band .scene__fade { height: 55%; }
+.scene__band .scene__fade { height: 55%; background: linear-gradient(0deg, var(--color-bg), rgb(18 11 7 / 0)); }
 .scene__band .scene__leaves--a { bottom: -190px; }
 @media (max-width: 899px) { .scene--band { --band-h: 20rem; } }

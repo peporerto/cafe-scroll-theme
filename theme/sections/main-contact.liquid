@@ -1,0 +1,64 @@
+{{ 'scene.css' | asset_url | stylesheet_tag }}
+{{ 'pages.css' | asset_url | stylesheet_tag }}
+<section class="pg contact scene scene--band" data-depth-scene>
+  {%- render 'scene-band', image: section.settings.scene_image, leaves: section.settings.show_leaves %}
+  <div class="pg__inner">
+    {%- render 'page-head', title: page.title %}
+    <div class="contact__layout">
+      <div class="contact__side">
+        {%- if page.content != blank %}<div class="pg__prose rte">{{ page.content }}</div>{% endif %}
+        {%- if section.settings.details != blank %}
+          <div class="contact__details rte">{{ section.settings.details }}</div>
+        {%- endif %}
+      </div>
+
+      {%- form 'contact', id: 'ContactForm', class: 'contact__form panel' %}
+        {%- if form.posted_successfully? %}
+          <p class="contact__ok" role="status" tabindex="-1" data-focus-me>{{ 'contact.success' | t }}</p>
+        {%- endif %}
+        {%- if form.errors %}
+          <div class="contact__errors" role="alert" tabindex="-1" data-focus-me>
+            <p>{{ 'contact.error_title' | t }}</p>
+            <ul>
+              {%- for field in form.errors %}
+                <li>{{ form.errors.translated_fields[field] | capitalize }} {{ form.errors.messages[field] }}</li>
+              {%- endfor %}
+            </ul>
+          </div>
+        {%- endif %}
+        <div class="field">
+          <label for="ContactForm-name">{{ 'contact.name' | t }}</label>
+          <input id="ContactForm-name" name="contact[name]" type="text" autocomplete="name" value="{% if form.name %}{{ form.name }}{% elsif customer %}{{ customer.name }}{% endif %}">
+        </div>
+        <div class="field">
+          <label for="ContactForm-email">{{ 'contact.email' | t }}</label>
+          <input id="ContactForm-email" name="contact[email]" type="email" autocomplete="email" required value="{{ form.email }}"{% if form.errors contains 'email' %} aria-invalid="true"{% endif %}>
+        </div>
+        <div class="field">
+          <label for="ContactForm-phone">{{ 'contact.phone' | t }}</label>
+          <input id="ContactForm-phone" name="contact[phone]" type="tel" autocomplete="tel" value="{{ form.phone }}">
+        </div>
+        <div class="field">
+          <label for="ContactForm-body">{{ 'contact.message' | t }}</label>
+          <textarea id="ContactForm-body" name="contact[body]" rows="6" required>{{ form.body }}</textarea>
+        </div>
+        <button type="submit" class="btn btn--primary">{{ 'contact.send' | t }}</button>
+      {%- endform %}
+    </div>
+  </div>
+</section>
+
+<script src="{{ 'pages.js' | asset_url }}" type="module" defer></script>
+
+{% schema %}
+{
+  "name": "Contact",
+  "tag": "div",
+  "settings": [
+    { "type": "richtext", "id": "details", "label": "Details beside the form", "info": "Address, opening hours, social links.", "default": "<p><strong>Roastery</strong><br>123 Mountain Road<br>Open Tue to Sat, 9 am to 4 pm</p>" },
+    { "type": "header", "content": "Scene" },
+    { "type": "image_picker", "id": "scene_image", "label": "Background photo", "info": "Overrides the default scene photo from Theme settings. Empty = use the default." },
+    { "type": "checkbox", "id": "show_leaves", "label": "Show the branches in front of the scene", "default": true }
+  ]
+}
+{% endschema %}

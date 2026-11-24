@@ -1,0 +1,68 @@
+{{ 'scene.css' | asset_url | stylesheet_tag }}
+{{ 'pages.css' | asset_url | stylesheet_tag }}
+
+<section class="pg lc scene scene--band" data-depth-scene>
+  {%- render 'scene-band', image: section.settings.scene_image, leaves: section.settings.show_leaves %}
+  <div class="pg__inner">
+    {%- assign head_title = 'list_collections.title' | t -%}
+    {%- render 'page-head', title: head_title, intro: section.settings.intro %}
+
+    {%- paginate collections by section.settings.per_page %}
+      {%- if collections.size == 0 %}
+        <div class="pg__empty">
+          <p class="pg__empty-title">{{ 'list_collections.empty_title' | t }}</p>
+          <p class="pg__empty-text">{{ 'list_collections.empty_text' | t }}</p>
+        </div>
+      {%- else %}
+        <ul class="lc__grid" role="list" style="--cols: {{ section.settings.columns }}">
+          {%- for collection in collections %}
+            {%- liquid
+              assign cover = collection.featured_image
+              if cover == blank
+                assign cover = collection.products.first.featured_media.preview_image
+              endif
+            -%}
+            <li class="lc__item">
+              <a class="lc__card" href="{{ collection.url }}">
+                <span class="lc__media">
+                  {%- if cover != blank %}
+                    {{
+                      cover
+                      | image_url: width: 900
+                      | image_tag: class: 'lc__img', loading: 'lazy', widths: '360,540,720,900', sizes: '(min-width: 900px) 30vw, 92vw', alt: ''
+                    }}
+                  {%- endif %}
+                </span>
+                <span class="lc__text">
+                  <span class="lc__title">{{ collection.title }}</span>
+                  <span class="lc__count">
+                    {%- if collection.products_count == 1 %}{{ 'list_collections.product_count_one' | t }}{% else %}{{ 'list_collections.product_count' | t: count: collection.products_count }}{% endif -%}
+                  </span>
+                </span>
+              </a>
+            </li>
+          {%- endfor %}
+        </ul>
+        {%- assign pager_label = 'list_collections.pagination' | t -%}
+        {%- render 'pagination', paginate: paginate, label: pager_label %}
+      {%- endif %}
+    {%- endpaginate %}
+  </div>
+</section>
+
+<script src="{{ 'pages.js' | asset_url }}" type="module" defer></script>
+
+{% schema %}
+{
+  "name": "Collection list",
+  "tag": "div",
+  "settings": [
+    { "type": "range", "id": "columns", "label": "Columns on desktop", "min": 2, "max": 4, "step": 1, "default": 3 },
+    { "type": "range", "id": "per_page", "label": "Collections per page", "min": 6, "max": 24, "step": 3, "default": 12 },
+    { "type": "richtext", "id": "intro", "label": "Intro text" },
+    { "type": "header", "content": "Scene" },
+    { "type": "image_picker", "id": "scene_image", "label": "Background photo", "info": "Overrides the default scene photo from Theme settings. Empty = use the default." },
+    { "type": "checkbox", "id": "show_leaves", "label": "Show the branches in front of the scene", "default": true }
+  ]
+}
+{% endschema %}

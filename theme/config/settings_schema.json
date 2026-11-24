@@ -17,6 +17,12 @@
     ]
   },
   {
+    "name": "Scene",
+    "settings": [
+      { "type": "image_picker", "id": "scene_image", "label": "Default scene photo", "info": "A wide, dark-ish lifestyle photo used behind page titles (collections, cart, blog, search, 404...). Each page can override it in the theme editor. Empty = warm gradient." }
+    ]
+  },
+  {
     "name": "Motion",
     "settings": [
       {
@@ -42,9 +48,9 @@
         "label": "Depth effects",
         "info": "Controls particles, shadows, and pointer parallax. Light disables particles and dynamic shadows.",
         "options": [
-          { "value": "full", "label": "Completo" },
-          { "value": "light", "label": "Ligero" },
-          { "value": "off", "label": "Apagado" }
+          { "value": "full", "label": "Full" },
+          { "value": "light", "label": "Light" },
+          { "value": "off", "label": "Off" }
         ],
         "default": "full"
       }

@@ -1,0 +1,77 @@
+{{ 'scene.css' | asset_url | stylesheet_tag }}
+{{ 'pages.css' | asset_url | stylesheet_tag }}
+<section class="pg srch scene scene--band" data-depth-scene>
+  {%- render 'scene-band', image: section.settings.scene_image, leaves: section.settings.show_leaves %}
+  <div class="pg__inner">
+    {%- liquid
+      if search.performed
+        if search.results_count == 1
+          assign intro_text = 'search.result_one' | t: terms: search.terms
+        else
+          assign intro_text = 'search.results' | t: count: search.results_count, terms: search.terms
+        endif
+      else
+        assign intro_text = 'search.prompt' | t
+      endif
+    -%}
+    {%- assign head_title = 'search.title' | t -%}
+    {%- render 'page-head', title: head_title %}
+    <form class="srch__form" action="{{ routes.search_url }}" method="get" role="search">
+      <label class="visually-hidden" for="Search-input">{{ 'search.label' | t }}</label>
+      <input id="Search-input" type="search" name="q" value="{{ search.terms | escape }}" placeholder="{{ 'search.placeholder' | t }}" autocomplete="off">
+      <input type="hidden" name="options[prefix]" value="last">
+      <button type="submit" class="btn btn--primary">{{ 'search.submit' | t }}</button>
+    </form>
+    <p class="srch__status" role="status" aria-live="polite">{{ intro_text }}</p>
+
+    {%- if search.performed %}
+      {%- paginate search.results by section.settings.per_page %}
+        {%- if search.results_count == 0 %}
+          <div class="pg__empty">
+            <p class="pg__empty-title">{{ 'search.no_results_title' | t: terms: search.terms }}</p>
+            <p class="pg__empty-text">{{ 'search.no_results_text' | t }}</p>
+            <a class="btn btn--primary" href="{{ routes.all_products_collection_url }}">{{ 'pages.all_products' | t }}</a>
+          </div>
+        {%- else %}
+          <ul class="srch__grid" role="list">
+            {%- for item in search.results %}
+              <li>
+                {%- case item.object_type %}
+                  {%- when 'product' %}
+                    {%- render 'product-card', product: item, show_type: true, image_fit: 'cover' %}
+                  {%- when 'article' %}
+                    {%- render 'article-card', article: item, show_blog: true %}
+                  {%- else %}
+                    <article class="acard acard--page">
+                      <div class="acard__body">
+                        <p class="acard__meta">{{ 'search.type_page' | t }}</p>
+                        <h3 class="acard__title"><a class="acard__link" href="{{ item.url }}">{{ item.title }}</a></h3>
+                        <p class="acard__excerpt">{{ item.content | strip_html | truncatewords: 26 }}</p>
+                      </div>
+                    </article>
+                {%- endcase %}
+              </li>
+            {%- endfor %}
+          </ul>
+          {%- assign pager_label = 'search.pagination' | t -%}
+          {%- render 'pagination', paginate: paginate, label: pager_label %}
+        {%- endif %}
+      {%- endpaginate %}
+    {%- endif %}
+  </div>
+</section>
+
+<script src="{{ 'pages.js' | asset_url }}" type="module" defer></script>
+
+{% schema %}
+{
+  "name": "Search",
+  "tag": "div",
+  "settings": [
+    { "type": "range", "id": "per_page", "label": "Results per page", "min": 8, "max": 24, "step": 4, "default": 12 },
+    { "type": "header", "content": "Scene" },
+    { "type": "image_picker", "id": "scene_image", "label": "Background photo", "info": "Overrides the default scene photo from Theme settings. Empty = use the default." },
+    { "type": "checkbox", "id": "show_leaves", "label": "Show the branches in front of the scene", "default": true }
+  ]
+}
+{% endschema %}
