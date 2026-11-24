@@ -37,5 +37,6 @@
   }
 </style>
 <script>
+  document.documentElement.classList.add('js');
   document.documentElement.dataset.depth = {{ settings.depth_effects | default: 'full' | json }};
 </script>

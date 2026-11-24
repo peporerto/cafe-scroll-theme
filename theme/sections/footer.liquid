@@ -1,30 +1,127 @@
 <footer
-  class="site-footer"
+  class="site-footer scene"
+  data-depth-scene
   data-section-id="{{ section.id }}"
   data-section-type="footer"
 >
-  <div class="site-footer__brand">{{ shop.name }}</div>
-  <p class="site-footer__copy">&copy; {{ 'now' | date: '%Y' }} {{ shop.name }}</p>
-  {%- if section.settings.menu != blank %}
-    <nav aria-label="{{ 'general.footer_navigation' | t }}">
-      <ul>
-        {%- for link in section.settings.menu.links %}
-          <li><a href="{{ link.url }}">{{ link.title }}</a></li>
-        {%- endfor %}
-      </ul>
-    </nav>
+  {%- if section.settings.show_leaves %}
+    {%- render 'scene-leaves' %}
   {%- endif %}
+
+  <div class="site-footer__inner scene__content">
+    <div class="site-footer__top">
+      <div class="site-footer__lead">
+        {%- if section.settings.tagline != blank %}
+          <p class="site-footer__tagline">{{ section.settings.tagline }}</p>
+        {%- endif %}
+
+        {%- if section.settings.show_newsletter %}
+          {%- form 'customer', id: 'FooterNewsletter', class: 'site-footer__form' %}
+            <h2 class="site-footer__h">{{ 'footer.newsletter_title' | t }}</h2>
+            <p class="site-footer__hint">{{ 'footer.newsletter_text' | t }}</p>
+            <input type="hidden" name="contact[tags]" value="newsletter">
+            {%- if form.posted_successfully? %}
+              <p class="site-footer__ok" role="status">{{ 'footer.success' | t }}</p>
+            {%- else %}
+              {%- if form.errors %}
+                <p class="site-footer__err" role="alert">{{ 'footer.error' | t }}</p>
+              {%- endif %}
+              <div class="site-footer__field">
+                <label class="visually-hidden" for="FooterNewsletter-email">{{ 'footer.email_label' | t }}</label>
+                <input id="FooterNewsletter-email" type="email" name="contact[email]" autocomplete="email" required placeholder="{{ 'footer.email_placeholder' | t }}"{% if form.errors %} aria-invalid="true"{% endif %}>
+                <button type="submit">{{ 'footer.subscribe' | t }}</button>
+              </div>
+            {%- endif %}
+          {%- endform %}
+        {%- endif %}
+      </div>
+
+      {%- if section.blocks.size > 0 %}
+        <div class="site-footer__cols">
+          {%- for block in section.blocks %}
+            <div class="site-footer__col" {{ block.shopify_attributes }}>
+              {%- case block.type %}
+                {%- when 'menu' %}
+                  {%- if block.settings.heading != blank %}<h2 class="site-footer__h">{{ block.settings.heading }}</h2>{% endif %}
+                  {%- if block.settings.menu != blank %}
+                    <ul>
+                      {%- for link in block.settings.menu.links %}
+                        <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+                      {%- endfor %}
+                    </ul>
+                  {%- endif %}
+                {%- when 'text' %}
+                  {%- if block.settings.heading != blank %}<h2 class="site-footer__h">{{ block.settings.heading }}</h2>{% endif %}
+                  <div class="site-footer__text rte">{{ block.settings.text }}</div>
+              {%- endcase %}
+            </div>
+          {%- endfor %}
+        </div>
+      {%- endif %}
+    </div>
+
+    <div class="site-footer__bottom">
+      {%- assign this_year = 'now' | date: '%Y' -%}
+      <p class="site-footer__copy">{{ 'footer.copyright' | t: year: this_year, shop: shop.name }}</p>
+
+      {%- if section.settings.show_social %}
+        {%- liquid
+          assign has_social = false
+          if settings.social_instagram != blank or settings.social_tiktok != blank or settings.social_youtube != blank or settings.social_facebook != blank or settings.social_pinterest != blank
+            assign has_social = true
+          endif
+        -%}
+        {%- if has_social %}
+          <ul class="site-footer__social" aria-label="{{ 'footer.social' | t }}">
+            {%- if settings.social_instagram != blank %}<li><a href="{{ settings.social_instagram }}" rel="me noopener" target="_blank">Instagram</a></li>{% endif %}
+            {%- if settings.social_tiktok != blank %}<li><a href="{{ settings.social_tiktok }}" rel="me noopener" target="_blank">TikTok</a></li>{% endif %}
+            {%- if settings.social_youtube != blank %}<li><a href="{{ settings.social_youtube }}" rel="me noopener" target="_blank">YouTube</a></li>{% endif %}
+            {%- if settings.social_facebook != blank %}<li><a href="{{ settings.social_facebook }}" rel="me noopener" target="_blank">Facebook</a></li>{% endif %}
+            {%- if settings.social_pinterest != blank %}<li><a href="{{ settings.social_pinterest }}" rel="me noopener" target="_blank">Pinterest</a></li>{% endif %}
+          </ul>
+        {%- endif %}
+      {%- endif %}
+
+      {%- if section.settings.show_payment and shop.enabled_payment_types.size > 0 %}
+        <ul class="site-footer__pay" aria-label="{{ 'footer.payment' | t }}">
+          {%- for type in shop.enabled_payment_types %}
+            <li>{{ type | payment_type_svg_tag: class: 'site-footer__pay-icon' }}</li>
+          {%- endfor %}
+        </ul>
+      {%- endif %}
+    </div>
+  </div>
+
+  <div class="site-footer__brand" aria-hidden="true">{{ shop.name }}</div>
 </footer>
 
 {% schema %}
 {
   "name": "Footer",
+  "max_blocks": 4,
   "settings": [
+    { "type": "text", "id": "tagline", "label": "Tagline", "default": "Small-lot coffee from high farms, roasted to order." },
+    { "type": "checkbox", "id": "show_newsletter", "label": "Show the email sign-up", "default": true },
+    { "type": "checkbox", "id": "show_social", "label": "Show social links", "info": "Add the links in Theme settings > Social media.", "default": true },
+    { "type": "checkbox", "id": "show_payment", "label": "Show payment icons", "default": true },
+    { "type": "checkbox", "id": "show_leaves", "label": "Show the branches", "default": true }
+  ],
+  "blocks": [
     {
-      "type": "link_list",
-      "id": "menu",
-      "label": "Menu",
-      "default": "footer"
+      "type": "menu",
+      "name": "Menu",
+      "settings": [
+        { "type": "text", "id": "heading", "label": "Heading", "default": "Shop" },
+        { "type": "link_list", "id": "menu", "label": "Menu", "default": "footer" }
+      ]
+    },
+    {
+      "type": "text",
+      "name": "Text",
+      "settings": [
+        { "type": "text", "id": "heading", "label": "Heading", "default": "Visit" },
+        { "type": "richtext", "id": "text", "label": "Text", "default": "<p>123 Mountain Road<br>Open Tue to Sat, 9 am to 4 pm</p>" }
+      ]
     }
   ]
 }

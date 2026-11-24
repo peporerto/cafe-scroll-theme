@@ -1,0 +1,17 @@
+{
+  "name": "Header",
+  "type": "header",
+  "sections": {
+    "header": {
+      "type": "header",
+      "settings": {
+        "menu": "main-menu",
+        "show_search": true,
+        "announcement": "Roasted to order · Ships in 48 hours"
+      }
+    }
+  },
+  "order": [
+    "header"
+  ]
+}

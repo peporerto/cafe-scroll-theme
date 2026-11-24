@@ -6,7 +6,11 @@
     "home": "Home",
     "breadcrumb": "Breadcrumb",
     "all_products": "All products",
-    "cart": "Cart"
+    "cart": "Cart",
+    "menu": "Menu",
+    "close_menu": "Close menu",
+    "search": "Search",
+    "announcement": "Announcement"
   },
   "products": {
     "product": {
@@ -186,5 +190,17 @@
     "disabled": "This gift card is disabled",
     "expires": "Expires {{ date }}",
     "add_to_wallet": "Add to Apple Wallet"
+  },
+  "footer": {
+    "newsletter_title": "Coffee news, rarely",
+    "newsletter_text": "New lots, brew tips and the odd discount. Never more than twice a month.",
+    "email_label": "Email",
+    "email_placeholder": "you@email.com",
+    "subscribe": "Subscribe",
+    "success": "Thanks! You are on the list.",
+    "error": "Please enter a valid email.",
+    "social": "Follow us",
+    "payment": "Payment methods",
+    "copyright": "© {{ year }} {{ shop }}"
   }
 }

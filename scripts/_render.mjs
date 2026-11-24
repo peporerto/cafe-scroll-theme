@@ -24,6 +24,7 @@ engine.registerFilter('image_url', v=> (v && typeof v==='object') ? (v.src || v.
 engine.registerFilter('image_tag', (url,...args)=>{ const a=kwargs(args); return `<img src="${url}" class="${a.class||''}" loading="${a.loading||'lazy'}" ${a.fetchpriority&&a.fetchpriority!=='auto'?`fetchpriority="${a.fetchpriority}"`:''} alt="${a.alt||''}">`; });
 engine.registerFilter('handleize', v=>String(v).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''));
 engine.registerFilter('format_code', v=>String(v).replace(/(.{4})(?=.)/g,'$1 ').toUpperCase());
+engine.registerFilter('payment_type_svg_tag', (t,...args)=>{ const a=kwargs(args); return `<svg class="${a.class||''}" viewBox="0 0 38 24" role="img" aria-label="${t}"><rect width="38" height="24" rx="3" fill="#fff"/><text x="19" y="15" font-size="6" text-anchor="middle" fill="#222">${t}</text></svg>`; });
 engine.registerFilter('money', cents);
 engine.registerFilter('money_without_currency', v=> (Number(v)/100).toFixed(2));
 engine.registerFilter('unit_price_with_measurement', (v,m)=> `${cents(v)} / ${m?.reference_value||1}${m?.reference_unit||'g'}`);
@@ -102,7 +103,9 @@ const imgs = {
   'featured-catalog': pick({ image_wall: has('catalog-wall.jpg') }),
   hero: pick({ image_far: has('hero-far.jpg'), image_open: has('hero-open.jpg') }),
 };
-function defaults(arr){const o={};for(const s of arr||[]) if(s.id) o[s.id]=s.default; return o;}
+const MENUS={ 'main-menu':[['Coffee','/collections/all'],['Collections','/collections'],['Journal','/blogs/journal'],['Our story','/pages/our-story'],['Contact','/pages/contact']], footer:[['Shop all','/collections/all'],['Journal','/blogs/journal'],['Search','/search'],['Contact','/pages/contact'],['Gift card','/gift']] };
+const resolveMenus=(o)=>{ for(const k in o) if(typeof o[k]==='string' && MENUS[o[k]]) o[k]={ links: MENUS[o[k]].map(([title,url])=>({title,url,current:false})) }; return o; };
+function defaults(arr){const o={};for(const s of arr||[]) if(s.id) o[s.id]= s.type==='link_list' && MENUS[s.default] ? { links: MENUS[s.default].map(([title,url])=>({title,url,current:false})) } : s.default; return o;}
 
 // ---- demo product (only for the local preview; a real shop supplies its own) ----
 function demoProduct(variantId){
@@ -298,11 +301,11 @@ async function renderSection(name,id,tpl,extra={}){
   const raw=fs.readFileSync(path.join(T,'sections',name+'.liquid'),'utf8');
   const m=raw.match(/{%\s*schema\s*%}([\s\S]*?){%\s*endschema\s*%}/);
   const schema=JSON.parse(m[1]); const body=raw.replace(m[0],'');
-  const settings={...defaults(schema.settings), ...(imgs[name]||{}), ...(tpl?.settings||{})};
+  const settings=resolveMenus({...defaults(schema.settings), ...(imgs[name]||{}), ...(tpl?.settings||{})});
   const bt=Object.fromEntries((schema.blocks||[]).map(b=>[b.type,b]));
   const blocks=[];
   if (tpl?.blocks) {
-    for (const bid of tpl.block_order||Object.keys(tpl.blocks)) { const b=tpl.blocks[bid]; blocks.push({id:bid,type:b.type,settings:{...defaults(bt[b.type]?.settings),...(b.settings||{})},shopify_attributes:''}); }
+    for (const bid of tpl.block_order||Object.keys(tpl.blocks)) { const b=tpl.blocks[bid]; blocks.push({id:bid,type:b.type,settings:{...defaults(bt[b.type]?.settings),...(b.settings||{})},shopify_attributes:''}); blocks[blocks.length-1].settings=resolveMenus(blocks[blocks.length-1].settings); }
   } else {
     const preset=(schema.presets||[])[0]||{};
     for(const b of preset.blocks||[]) blocks.push({type:b.type,settings:{...defaults(bt[b.type]?.settings),...(b.settings||{})},shopify_attributes:''});
@@ -310,7 +313,7 @@ async function renderSection(name,id,tpl,extra={}){
   }
   return engine.parseAndRender(body,{section:{id,settings,blocks},settings:gsettings,shop:SHOP,routes:ROUTES,linklists:{},request:REQUEST,collections:{},products:[],cart:buildCart(),...extra});
 }
-const SHOP={name:'Altura',url:'https://altura.example',money_format:'${{amount}}',password_message:'<p>We are roasting the first batches. Leave your email and we will tell you the day we open.</p>'};
+const SHOP={name:'Altura',url:'https://altura.example',money_format:'${{amount}}',enabled_payment_types:['visa','master','american_express','shopify_pay'],password_message:'<p>We are roasting the first batches. Leave your email and we will tell you the day we open.</p>'};
 const ROUTES={root_url:'/',cart_url:'/cart',all_products_collection_url:'/collections/all',search_url:'/search'};
 const REQUEST={locale:{iso_code:'en'},page_type:'index'};
 
@@ -328,13 +331,19 @@ export async function render(kind='index', opts={}){
   if (kind==='cart') tpl.sections.main.settings={...tpl.sections.main.settings, scene_image:{src:'/preview-images/hero-open.jpg',width:1672,height:941}};
   let main=''; for(const id of tpl.order){ main+=await renderSection(tpl.sections[id].type,id,tpl.sections[id],{...extra,request});}
   let layout=fs.readFileSync(path.join(T,`layout/${kind==='password'?'password':'theme'}.liquid`),'utf8');
-  const header=kind==='password'?'':await renderSection('header','header'), footer=kind==='password'?'':await renderSection('footer','footer');
-  layout=layout.replace(/{%\s*section 'header'\s*%}/,'__H__').replace(/{%\s*section 'footer'\s*%}/,'__F__').replace('{{ content_for_layout }}','__M__');
+  const header=kind==='password'?'':await renderGroup('header-group'), footer=kind==='password'?'':await renderGroup('footer-group');
+  layout=layout.replace(/{%\s*sections? '(header|header-group)'\s*%}/,'__H__').replace(/{%\s*sections? '(footer|footer-group)'\s*%}/,'__F__').replace('{{ content_for_layout }}','__M__');
   let html=await engine.parseAndRender(layout,{settings:gsettings,shop:SHOP,request,routes:ROUTES,cart:buildCart(),...extra,page_title:kind==='404'?'Page not found – Altura':kind==='product'?'Ethiopia Yirgacheffe – Altura':kind==='cart'?'Your cart – Altura':kind==='collection'?'Coffee – Altura':'Altura',canonical_url:'',content_for_header:''});
   html=html.replace('__H__',header).replace('__F__',footer).replace('__M__',main);
   return html;
 }
 
+// {% sections 'x-group' %}: every section wrapped like Shopify does (the wrapper is what a sticky header sticks to)
+async function renderGroup(name){
+  const g=JSON.parse(fs.readFileSync(path.join(T,`sections/${name}.json`),'utf8')); let out='';
+  for(const id of g.order){ const sec=g.sections[id]; out+=`<div id="shopify-section-${id}" class="shopify-section shopify-section-group-${name}">${await renderSection(sec.type,id,sec)}</div>`; }
+  return out;
+}
 async function renderGiftCard(opts){
   const raw=fs.readFileSync(path.join(T,'templates/gift_card.liquid'),'utf8');
   const extra=demoPageExtra('gift_card',opts);

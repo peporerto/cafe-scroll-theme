@@ -1,0 +1,33 @@
+{
+  "name": "Footer",
+  "type": "footer",
+  "sections": {
+    "footer": {
+      "type": "footer",
+      "blocks": {
+        "shop": {
+          "type": "menu",
+          "settings": {
+            "heading": "Shop",
+            "menu": "footer"
+          }
+        },
+        "visit": {
+          "type": "text",
+          "settings": {
+            "heading": "Visit",
+            "text": "<p>123 Mountain Road<br>Open Tue to Sat, 9 am to 4 pm</p>"
+          }
+        }
+      },
+      "block_order": [
+        "shop",
+        "visit"
+      ],
+      "settings": {}
+    }
+  },
+  "order": [
+    "footer"
+  ]
+}

@@ -27,13 +27,13 @@
   <body>
     <a class="skip-link" href="#main">{{ 'general.skip_to_content' | t }}</a>
 
-    {% section 'header' %}
+    {% sections 'header-group' %}
 
     <main id="main" tabindex="-1">
       {{ content_for_layout }}
     </main>
 
-    {% section 'footer' %}
+    {% sections 'footer-group' %}
 
     <script src="{{ 'main.js' | asset_url }}" type="module" defer></script>
   </body>
