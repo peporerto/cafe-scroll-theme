@@ -279,3 +279,10 @@ Con la misma franja de escena (`.scene--band`) y el estilo E. Archivos nuevos:
 - Simulador: ruta `/recommendations/products` (`renderRecs` en `_render.mjs`) y `product_recommendations_url` en ROUTES.
 - Gotcha: el contenedor de recomendaciones vacío no debe llevar `display: none` o el observer nunca lo ve; se le quita el padding y listo.
 - Probado: escritorio 1440 y celular 390 sin desbordes, 4 tarjetas cargadas, JSON-LD válido, consola limpia, Theme Check limpio (51 archivos).
+
+## 17. Home: historia y simulador en diseño E (hecho 2026-11-24)
+- `story`: frase en Bricolage y estadísticas en tarjetas oscuras elevadas (borde, brillo superior, sombra). El conteo animado y el reveal por líneas no cambian.
+- `roast-simulator`: el panel claro (#E6E4DE) era un resto del diseño viejo. Ahora el grano vive en una tarjeta oscura con luz cálida detrás (el renderer WebGL es `alpha: true`, así que el fondo lo pone el CSS), pestañas de etapa y diagnóstico en superficies elevadas, puntos de color con aro para que los tuestes oscuros se vean. El placeholder sin foto usa el mismo degradado cálido.
+- Estilos al final de `base.css` (bloque "Home sections (design E)"). El hero pinned y `featured-catalog` ya estaban en E y no se tocaron.
+- Pendiente aparte: el simulador con imágenes reales del grano (ver orden del handoff).
+- Probado: 1440 y 390 sin desbordes, consola limpia, Theme Check limpio.
