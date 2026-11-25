@@ -19,6 +19,7 @@ export function init(section, state, effective) {
   if (phrase) {
     // Preserve full text for accessibility
     const originalText = phrase.textContent.trim();
+    phrase.setAttribute('role', 'group');
     phrase.setAttribute('aria-label', originalText);
 
     // Split words and measure lines

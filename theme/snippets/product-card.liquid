@@ -1,11 +1,12 @@
 {%- comment -%}
   Product card for grids (collection, search, related products).
-  Params: product, loading ('lazy' | 'eager'), sizes, show_type (bool), image_fit ('contain' | 'cover')
+  Params: product, loading ('lazy' | 'eager'), sizes, show_type (bool), image_fit ('contain' | 'cover'), heading_tag ('h2' | 'h3', default h3)
 {%- endcomment -%}
 {%- liquid
   assign first = product.featured_media
   assign second = product.media[1]
   assign alt_text = first.alt | default: product.title
+  assign card_tag = heading_tag | default: 'h3'
   assign on_sale = false
   if product.compare_at_price > product.price
     assign on_sale = true
@@ -41,7 +42,7 @@
     {%- if show_type and product.type != blank %}
       <p class="card__type">{{ product.type }}</p>
     {%- endif %}
-    <h3 class="card__title"><a class="card__link" href="{{ product.url }}">{{ product.title }}</a></h3>
+    <{{ card_tag }} class="card__title"><a class="card__link" href="{{ product.url }}">{{ product.title }}</a></{{ card_tag }}>
     <p class="card__price">
       {%- if on_sale %}<s class="card__was">{{ product.compare_at_price | money }}</s>{% endif -%}
       <span class="card__now">{% if product.price_varies %}{{ 'collections.from' | t }} {% endif %}{{ product.price | money }}</span>

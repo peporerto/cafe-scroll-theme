@@ -83,7 +83,7 @@
           {%- if sort_on %}
             <label class="coll__sort">
               <span>{{ 'collections.sort_by' | t }}</span>
-              <select name="sort_by">
+              <select name="sort_by" aria-label="{{ 'collections.sort_by' | t }}">
                 {%- for option in collection.sort_options %}
                   <option value="{{ option.value }}"{% if option.value == collection.sort_by %} selected{% endif %}>{{ option.name }}</option>
                 {%- endfor %}
@@ -163,7 +163,7 @@
                   {%- assign card_loading = 'lazy' -%}
                   {%- if forloop.index <= 4 %}{% assign card_loading = 'eager' %}{% endif -%}
                   <li class="coll__cell">
-                    {%- render 'product-card', product: product, loading: card_loading, show_type: section.settings.show_type, image_fit: section.settings.image_fit -%}
+                    {%- render 'product-card', product: product, loading: card_loading, show_type: section.settings.show_type, heading_tag: 'h2', image_fit: section.settings.image_fit -%}
                   </li>
                 {%- endfor %}
               </ul>

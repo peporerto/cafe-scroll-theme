@@ -14,8 +14,7 @@
   <meta property="og:description" content="{{ page_description | escape }}">
 {%- endif %}
 {%- if og_image != blank %}
-  <meta property="og:image" content="http:{{ og_image | image_url: width: 1200 }}">
-  <meta property="og:image:secure_url" content="https:{{ og_image | image_url: width: 1200 }}">
+  <meta property="og:image" content="{{ og_image | image_url: width: 1200 }}">
 {%- endif %}
 {%- if request.page_type == 'product' %}
   <meta property="og:price:amount" content="{{ product.selected_or_first_available_variant.price | money_without_currency }}">
@@ -23,3 +22,32 @@
 {%- endif %}
 <meta name="twitter:card" content="{% if og_image != blank %}summary_large_image{% else %}summary{% endif %}">
 <meta name="twitter:title" content="{{ og_title | escape }}">
+{%- if page_description != blank %}
+  <meta name="twitter:description" content="{{ page_description | truncate: 200 | escape }}">
+{%- endif %}
+
+{%- comment -%} Home page: tells search engines what the site is and where its search lives. {%- endcomment -%}
+{%- if request.page_type == 'index' %}
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "name": {{ shop.name | json }},
+          "url": {{ shop.url | json }}
+        },
+        {
+          "@type": "WebSite",
+          "name": {{ shop.name | json }},
+          "url": {{ shop.url | json }},
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {{ shop.url | append: routes.search_url | append: '?q={search_term_string}' | json }},
+            "query-input": "required name=search_term_string"
+          }
+        }
+      ]
+    }
+  </script>
+{%- endif %}

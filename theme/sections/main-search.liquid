@@ -38,7 +38,7 @@
               <li>
                 {%- case item.object_type %}
                   {%- when 'product' %}
-                    {%- render 'product-card', product: item, show_type: true, image_fit: 'cover' %}
+                    {%- render 'product-card', product: item, show_type: true, image_fit: 'cover', heading_tag: 'h2' %}
                   {%- when 'article' %}
                     {%- render 'article-card', article: item, show_blog: true %}
                   {%- else %}
